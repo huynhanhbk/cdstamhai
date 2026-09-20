@@ -1,0 +1,6 @@
+{
+  "name": "Hội Thi Ban Công Tác Mặt Trận Với Chuyển Đổi Số",
+  "description": "Hệ thống điều hành và trình chiếu sân khấu Hội thi 'Ban công tác Mặt trận với chuyển đổi số' - UBND & UBMTTQ Việt Nam xã Tam Hải",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
