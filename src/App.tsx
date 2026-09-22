@@ -58,19 +58,30 @@ export default function App() {
     onConfirm: () => {},
   });
 
-  // Helper to add toast
-  const addToast = useCallback((type: 'success' | 'error' | 'info' | 'warning', text: string) => {
-    const newToast: ToastMessage = {
-      id: `toast-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
-      type,
-      text,
-    };
-    setToasts((prev) => [...prev, newToast]);
-  }, []);
-
+  // Helper to remove toast
   const removeToast = useCallback((id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
+
+  // Helper to add toast (auto disappears after 3 seconds)
+  const addToast = useCallback((type: 'success' | 'error' | 'info' | 'warning', text: string) => {
+    const id = `toast-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+    const newToast: ToastMessage = {
+      id,
+      type,
+      text,
+    };
+    // Deduplicate: Don't stack identical toast messages
+    setToasts((prev) => {
+      const filtered = prev.filter((t) => t.text !== text);
+      return [...filtered, newToast];
+    });
+
+    // Auto-remove after 3 seconds (3000ms)
+    setTimeout(() => {
+      removeToast(id);
+    }, 3000);
+  }, [removeToast]);
 
   // Initialize data on mount and subscribe to cloud changes
   useEffect(() => {
@@ -91,11 +102,17 @@ export default function App() {
     });
 
     // 3. Attempt cloud initialization & synchronization
+    let lastCloudToastTime = 0;
     StorageService.initCloudSync((remotePkgs, remoteSits, remoteTeams) => {
       if (remotePkgs) setPackages(remotePkgs);
       if (remoteSits) setSituations(remoteSits);
       if (remoteTeams) setTeams(remoteTeams);
-      addToast('success', 'Đã cập nhật dữ liệu mới nhất từ Cloud Firestore');
+
+      const now = Date.now();
+      if (now - lastCloudToastTime > 5000) {
+        lastCloudToastTime = now;
+        addToast('success', 'Đã cập nhật dữ liệu mới nhất từ Cloud Firestore');
+      }
     });
 
     return () => {

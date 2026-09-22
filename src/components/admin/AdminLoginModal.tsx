@@ -42,9 +42,9 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
       // 2. Local Operator Authentication (Default Offline Demo & Event Operator)
       // Allows immediate secure offline operation in the hall without requiring internet access
       const isDefaultMatch =
-        (username.trim() === 'admin' && password.trim() === 'admin@tamhai2026') ||
-        (username.trim() === 'banbientap' && password.trim() === 'tamhai123') ||
-        (username.trim() === 'admin' && password.trim() === 'admin123');
+        (username.trim().toLowerCase() === 'admin' &&
+          (password.trim() === 'Tamhai@2026' || password.trim() === 'tamhai@2026')) ||
+        (username.trim() === 'banbientap' && password.trim() === 'tamhai123');
 
       // Check stored custom admin password if any
       const storedCustomPass = localStorage.getItem('tamhai_admin_custom_password');
@@ -136,17 +136,9 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
           </div>
         </form>
 
-        {/* Demo hints for organizer */}
-        <div className="mt-6 pt-4 border-t border-slate-800 text-[11px] text-slate-400 text-center space-y-1">
-          <div>
-            Tài khoản mẫu: <code className="text-cyan-300 font-bold">admin</code>
-          </div>
-          <div>
-            Mật khẩu mặc định: <code className="text-cyan-300 font-bold">admin@tamhai2026</code>
-          </div>
-          <p className="text-[10px] text-slate-500 mt-2">
-            (Có thể thay đổi mật khẩu quản trị hoặc kết nối Firebase Auth trong mục Cài đặt)
-          </p>
+        <div className="mt-6 pt-4 border-t border-slate-800 text-[11px] text-slate-500 text-center flex items-center justify-center gap-1.5">
+          <Shield className="w-3.5 h-3.5 text-cyan-500/70" />
+          <span>Hệ thống bảo mật điều hành Hội thi UBND & UBMTTQ xã Tam Hải</span>
         </div>
       </div>
     </div>

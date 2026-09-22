@@ -27,6 +27,16 @@ const LOCAL_STORAGE_KEY_SITUATIONS = 'tamhai_situations';
 const LOCAL_STORAGE_KEY_TEAMS = 'tamhai_teams';
 const LOCAL_STORAGE_KEY_SETTINGS = 'tamhai_settings';
 
+// Helper to remove any undefined fields before sending to Firestore
+function cleanForFirestore<T>(data: T): T {
+  if (data === null || data === undefined) return null as unknown as T;
+  try {
+    return JSON.parse(JSON.stringify(data));
+  } catch {
+    return data;
+  }
+}
+
 export class StorageService {
   private static currentStatus: SyncStatus = {
     state: isFirebaseConfigured ? 'synced' : 'offline',
@@ -60,7 +70,33 @@ export class StorageService {
     try {
       const data = localStorage.getItem(LOCAL_STORAGE_KEY_PACKAGES);
       if (data) {
-        return JSON.parse(data);
+        let pkgs: QuizPackage[] = JSON.parse(data);
+        // 1. Always remove package 12 as requested
+        pkgs = pkgs.filter((p) => p.number !== 12 && p.id !== 'pkg-12');
+
+        // 2. Ensure package 11 is 'CÂU HỎI DÀNH CHO KHÁN GIẢ' with 14 questions
+        const defaultAudiencePkg = DEFAULT_PACKAGES.find((p) => p.number === 11 || p.id === 'pkg-11');
+        const existingAudienceIdx = pkgs.findIndex((p) => p.number === 11 || p.id === 'pkg-11' || p.isAudience);
+
+        if (defaultAudiencePkg) {
+          if (existingAudienceIdx === -1) {
+            pkgs.push(defaultAudiencePkg);
+          } else if (
+            pkgs[existingAudienceIdx].questions.length < 14 ||
+            pkgs[existingAudienceIdx].title !== 'CÂU HỎI DÀNH CHO KHÁN GIẢ'
+          ) {
+            pkgs[existingAudienceIdx] = {
+              ...pkgs[existingAudienceIdx],
+              title: 'CÂU HỎI DÀNH CHO KHÁN GIẢ',
+              isAudience: true,
+              questions: defaultAudiencePkg.questions,
+            };
+          }
+        }
+
+        pkgs.sort((a, b) => a.number - b.number);
+        this.savePackagesLocal(pkgs);
+        return pkgs;
       }
     } catch {
       // Fallback to defaults
@@ -82,7 +118,8 @@ export class StorageService {
         const batch = writeBatch(firestore);
         packages.forEach((pkg) => {
           const ref = doc(firestore, 'quizPackages', pkg.id);
-          batch.set(ref, pkg, { merge: true });
+          const cleanPkg = cleanForFirestore(pkg);
+          batch.set(ref, cleanPkg);
         });
         await batch.commit();
         this.updateSyncStatus({
@@ -128,7 +165,8 @@ export class StorageService {
         const batch = writeBatch(firestore);
         situations.forEach((sit) => {
           const ref = doc(firestore, 'situations', sit.id);
-          batch.set(ref, sit, { merge: true });
+          const cleanSit = cleanForFirestore(sit);
+          batch.set(ref, cleanSit);
         });
         await batch.commit();
         this.updateSyncStatus({
@@ -173,13 +211,29 @@ export class StorageService {
         const batch = writeBatch(firestore);
         teams.forEach((t) => {
           const ref = doc(firestore, 'teams', t.id);
-          batch.set(ref, t, { merge: true });
+          const cleanTeam = cleanForFirestore(t);
+          batch.set(ref, cleanTeam);
         });
         await batch.commit();
       } catch (e) {
         console.warn('Sync teams warning:', e);
       }
     }
+  }
+
+  public static async deleteTeam(teamId: string, syncToCloud = true): Promise<Team[]> {
+    const teams = this.getTeams().filter((t) => t.id !== teamId);
+    this.saveTeamsLocal(teams);
+    const firestore = db;
+    if (syncToCloud && isFirebaseConfigured && firestore && navigator.onLine) {
+      try {
+        const { deleteDoc } = await import('firebase/firestore');
+        await deleteDoc(doc(firestore, 'teams', teamId));
+      } catch (e) {
+        console.warn('Delete team cloud error:', e);
+      }
+    }
+    return teams;
   }
 
   // ===== SETTINGS =====
@@ -205,7 +259,8 @@ export class StorageService {
     const firestore = db;
     if (syncToCloud && isFirebaseConfigured && firestore && navigator.onLine) {
       try {
-        await setDoc(doc(firestore, 'settings', 'general'), settings, { merge: true });
+        const cleanSettings = cleanForFirestore(settings);
+        await setDoc(doc(firestore, 'settings', 'general'), cleanSettings, { merge: true });
       } catch (e) {
         console.warn('Sync settings warning:', e);
       }
@@ -215,29 +270,35 @@ export class StorageService {
   // ===== RESET STATE FUNCTIONS =====
   public static resetRound1(): QuizPackage[] {
     const packages = this.getPackages();
-    const updated = packages.map((pkg) => ({
-      ...pkg,
-      status: 'unplayed' as const,
-      score: 0,
-      results: [],
-      playedAt: undefined,
-    }));
+    const updated = packages.map((pkg) => {
+      const copy: QuizPackage = {
+        ...pkg,
+        status: 'unplayed',
+        score: 0,
+        results: [],
+      };
+      delete copy.playedAt;
+      return copy;
+    });
     this.savePackages(updated, true);
     return updated;
   }
 
   public static resetRound2(): Situation[] {
     const situations = this.getSituations();
-    const updated = situations.map((sit) => ({
-      ...sit,
-      status: 'unplayed' as const,
-      elapsedSeconds: undefined,
-      overtimeSeconds: undefined,
-      judgeScore: undefined,
-      penaltyScore: undefined,
-      finalScore: undefined,
-      playedAt: undefined,
-    }));
+    const updated = situations.map((sit) => {
+      const copy: Situation = {
+        ...sit,
+        status: 'unplayed',
+      };
+      delete copy.elapsedSeconds;
+      delete copy.overtimeSeconds;
+      delete copy.judgeScore;
+      delete copy.penaltyScore;
+      delete copy.finalScore;
+      delete copy.playedAt;
+      return copy;
+    });
     this.saveSituations(updated, true);
     return updated;
   }

@@ -25,6 +25,9 @@ import {
   ChevronDown,
   ChevronUp,
   Terminal,
+  Search,
+  Trophy,
+  UserPlus,
 } from 'lucide-react';
 import { AppSettings, QuizPackage, QuizQuestion, Situation, SyncStatus, Team } from '../../types/competition';
 import { StorageService } from '../../services/storageService';
@@ -83,6 +86,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Situation editing modal / state
   const [editingSituation, setEditingSituation] = useState<Situation | null>(null);
   const [isAddingNewSituation, setIsAddingNewSituation] = useState(false);
+
+  // Team editing modal / state
+  const [editingTeam, setEditingTeam] = useState<Team | null>(null);
+  const [isAddingNewTeam, setIsAddingNewTeam] = useState(false);
+  const [teamSearchQuery, setTeamSearchQuery] = useState('');
+  const [teamToDelete, setTeamToDelete] = useState<Team | null>(null);
 
   // New admin password state
   const [newPassword, setNewPassword] = useState('');
@@ -197,6 +206,58 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     const updated = situations.filter((s) => s.id !== sitId);
     onUpdateSituations(updated);
     StorageService.saveSituations(updated, true);
+  };
+
+  // Save team (Add / Edit)
+  const handleSaveTeam = (teamData: Team) => {
+    let updated: Team[];
+    const r1 = Number(teamData.round1Score) || 0;
+    const r2 = Number(teamData.round2Score) || 0;
+    const sanitizedTeam: Team = {
+      ...teamData,
+      name: teamData.name.trim() || 'Đội thi mới',
+      code: teamData.code.trim().toUpperCase() || `T${teams.length + 1}`,
+      unit: teamData.unit.trim() || 'UBMTTQ xã Tam Hải',
+      members: teamData.members.trim() || '03 thành viên',
+      round1Score: r1,
+      round2Score: r2,
+      totalScore: r1 + r2,
+    };
+
+    if (isAddingNewTeam) {
+      const newTeam: Team = {
+        ...sanitizedTeam,
+        id: sanitizedTeam.id || `team-${Date.now()}`,
+      };
+      updated = [...teams, newTeam];
+    } else {
+      updated = teams.map((t) => (t.id === sanitizedTeam.id ? sanitizedTeam : t));
+    }
+    onUpdateTeams(updated);
+    StorageService.saveTeams(updated, true);
+    setEditingTeam(null);
+    setIsAddingNewTeam(false);
+  };
+
+  // Delete team
+  const handleDeleteTeam = (teamId: string) => {
+    const updated = teams.filter((t) => t.id !== teamId);
+    onUpdateTeams(updated);
+    StorageService.deleteTeam(teamId, true);
+    setTeamToDelete(null);
+  };
+
+  // Reset team scores
+  const handleResetTeamScores = () => {
+    if (!confirm('Bạn có chắc chắn muốn đặt lại điểm số của tất cả các đội thi về 0?')) return;
+    const updated = teams.map((t) => ({
+      ...t,
+      round1Score: 0,
+      round2Score: 0,
+      totalScore: 0,
+    }));
+    onUpdateTeams(updated);
+    StorageService.saveTeams(updated, true);
   };
 
   // Change custom password
@@ -495,7 +556,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-slate-900 border border-slate-800">
               <div className="flex items-center gap-2 overflow-x-auto max-w-4xl py-1">
                 {packages.map((pkg) => {
-                  const has4Questions = pkg.questions.length === 4;
+                  const isAudience = pkg.isAudience || pkg.number === 11;
+                  const hasValidCount = isAudience ? pkg.questions.length >= 14 : pkg.questions.length === 4;
                   return (
                     <button
                       key={pkg.id}
@@ -507,8 +569,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       }`}
                     >
                       <span>{pkg.title}</span>
-                      {!has4Questions ? (
-                        <span className="w-2 h-2 rounded-full bg-amber-400" title="Chưa đủ 4 câu!" />
+                      {!hasValidCount ? (
+                        <span className="w-2 h-2 rounded-full bg-amber-400" title="Chưa đủ số lượng câu hỏi!" />
                       ) : (
                         <span className="w-2 h-2 rounded-full bg-emerald-400" />
                       )}
@@ -535,7 +597,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <div>
                     <h3 className="text-xl font-black text-white flex items-center gap-3">
                       <span>{currentEditingPkg.title}</span>
-                      {currentEditingPkg.questions.length === 4 ? (
+                      {currentEditingPkg.isAudience || currentEditingPkg.number === 11 ? (
+                        <span className="px-2.5 py-0.5 rounded-full bg-amber-950 border border-amber-500/40 text-amber-300 text-xs font-bold">
+                          Gói Khán Giả • {currentEditingPkg.questions.length} câu hỏi
+                        </span>
+                      ) : currentEditingPkg.questions.length === 4 ? (
                         <span className="px-2.5 py-0.5 rounded-full bg-emerald-950 border border-emerald-500/40 text-emerald-300 text-xs font-bold">
                           Đủ 04 câu hỏi
                         </span>
@@ -750,78 +816,236 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         {/* ============================================================ */}
         {activeTab === 'teams' && (
           <div className="py-6 space-y-6">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
               <div>
-                <h3 className="text-lg font-black text-white">Bảng Xếp Hạng & Quản Lý Đội Thi</h3>
-                <p className="text-xs text-slate-400">
-                  Tổng hợp điểm số Phần thi 1 (tối đa 20đ) và Phần thi 2 (tối đa 30đ)
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-300 flex items-center justify-center font-black">
+                    <Users className="w-4 h-4" />
+                  </div>
+                  <h3 className="text-lg font-black text-white">Quản Lý Đội Thi & Bảng Điểm Hội Thi</h3>
+                </div>
+                <p className="text-xs text-slate-400 mt-1">
+                  Quản lý thông tin đội thi (Thêm/Sửa/Xóa), nhập điểm trực tiếp Phần 1 (max 20đ) và Phần 2 (max 30đ)
                 </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => {
+                    setEditingTeam({
+                      id: '',
+                      code: `T${teams.length + 1}`,
+                      name: '',
+                      unit: 'Xã Tam Hải',
+                      members: '',
+                      round1Score: 0,
+                      round2Score: 0,
+                      totalScore: 0,
+                    });
+                    setIsAddingNewTeam(true);
+                  }}
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 text-xs font-black flex items-center gap-1.5 shadow-lg shadow-cyan-950/40 transition active:scale-95"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  <span>Thêm đội thi mới</span>
+                </button>
+                <button
+                  onClick={handleResetTeamScores}
+                  className="px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 text-slate-300 hover:text-rose-300 hover:border-rose-500/50 text-xs font-bold flex items-center gap-1.5 transition"
+                  title="Đặt lại toàn bộ điểm số của các đội về 0"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Đặt lại điểm số</span>
+                </button>
               </div>
             </div>
 
-            <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900">
+            {/* Quick Stats & Search */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="sm:col-span-2 relative">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm đội thi theo tên thôn, tên đội hoặc mã đội..."
+                  value={teamSearchQuery}
+                  onChange={(e) => setTeamSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-900 border border-slate-800 text-white text-xs placeholder:text-slate-500 focus:outline-none focus:border-cyan-500"
+                />
+              </div>
+
+              <div className="p-2.5 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between px-4 text-xs">
+                <span className="text-slate-400 font-medium">Tổng số đội:</span>
+                <span className="font-black text-cyan-300 text-sm">{teams.length} Đội</span>
+              </div>
+            </div>
+
+            {/* Teams Table */}
+            <div className="overflow-x-auto rounded-3xl border border-slate-800 bg-slate-900/90 shadow-xl">
               <table className="w-full text-left text-sm text-slate-200">
                 <thead className="bg-slate-950 text-slate-400 text-xs uppercase font-bold border-b border-slate-800">
                   <tr>
-                    <th className="p-4">STT</th>
-                    <th className="p-4">Tên Đội Thi / Ban CTMT Thôn</th>
+                    <th className="p-4 text-center w-16">Hạng</th>
+                    <th className="p-4 w-20">Mã</th>
+                    <th className="p-4">Tên Đội Thi & Thành Viên</th>
                     <th className="p-4">Đơn Vị</th>
                     <th className="p-4 text-center">Điểm Phần 1 (Max 20)</th>
                     <th className="p-4 text-center">Điểm Phần 2 (Max 30)</th>
-                    <th className="p-4 text-center">Tổng Điểm</th>
+                    <th className="p-4 text-center font-black">Tổng Điểm</th>
+                    <th className="p-4 text-center w-28">Thao Tác</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/60">
-                  {teams.map((t, idx) => (
-                    <tr key={t.id} className="hover:bg-slate-850/50">
-                      <td className="p-4 font-bold text-slate-400">{idx + 1}</td>
-                      <td className="p-4 font-bold text-white">{t.name}</td>
-                      <td className="p-4 text-slate-300 text-xs">{t.unit}</td>
-                      <td className="p-4 text-center">
-                        <input
-                          type="number"
-                          min="0"
-                          max="20"
-                          value={t.round1Score}
-                          onChange={(e) => {
-                            const val = parseFloat(e.target.value) || 0;
-                            const updated = teams.map((team) =>
-                              team.id === t.id
-                                ? { ...team, round1Score: val, totalScore: val + team.round2Score }
-                                : team
-                            );
-                            onUpdateTeams(updated);
-                            StorageService.saveTeams(updated, true);
-                          }}
-                          className="w-16 px-2 py-1 bg-slate-950 border border-slate-700 rounded-lg text-center font-bold text-cyan-300"
-                        />
-                      </td>
-                      <td className="p-4 text-center">
-                        <input
-                          type="number"
-                          min="0"
-                          max="30"
-                          value={t.round2Score}
-                          onChange={(e) => {
-                            const val = parseFloat(e.target.value) || 0;
-                            const updated = teams.map((team) =>
-                              team.id === t.id
-                                ? { ...team, round2Score: val, totalScore: team.round1Score + val }
-                                : team
-                            );
-                            onUpdateTeams(updated);
-                            StorageService.saveTeams(updated, true);
-                          }}
-                          className="w-16 px-2 py-1 bg-slate-950 border border-slate-700 rounded-lg text-center font-bold text-indigo-300"
-                        />
-                      </td>
-                      <td className="p-4 text-center font-black text-emerald-400 text-base">
-                        {t.round1Score + t.round2Score}
-                      </td>
-                    </tr>
-                  ))}
+                  {teams
+                    .filter((t) => {
+                      if (!teamSearchQuery.trim()) return true;
+                      const q = teamSearchQuery.toLowerCase();
+                      return (
+                        t.name.toLowerCase().includes(q) ||
+                        t.unit.toLowerCase().includes(q) ||
+                        t.code.toLowerCase().includes(q) ||
+                        t.members.toLowerCase().includes(q)
+                      );
+                    })
+                    .map((t) => {
+                      // Calculate rank based on total score
+                      const sorted = [...teams].sort((a, b) => b.totalScore - a.totalScore);
+                      const rank = sorted.findIndex((item) => item.id === t.id) + 1;
+
+                      return (
+                        <tr key={t.id} className="hover:bg-slate-850/50 transition">
+                          <td className="p-4 text-center">
+                            {rank === 1 ? (
+                              <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-500/20 text-amber-300 font-black text-xs border border-amber-500/40">
+                                🥇 1
+                              </span>
+                            ) : rank === 2 ? (
+                              <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-slate-400/20 text-slate-200 font-black text-xs border border-slate-400/40">
+                                🥈 2
+                              </span>
+                            ) : rank === 3 ? (
+                              <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-700/20 text-amber-400 font-black text-xs border border-amber-700/40">
+                                🥉 3
+                              </span>
+                            ) : (
+                              <span className="text-slate-500 font-bold text-xs">{rank}</span>
+                            )}
+                          </td>
+                          <td className="p-4">
+                            <span className="px-2 py-1 rounded-md bg-slate-950 border border-slate-800 font-mono text-xs font-bold text-cyan-300">
+                              {t.code}
+                            </span>
+                          </td>
+                          <td className="p-4">
+                            <div className="font-bold text-white text-sm md:text-base">{t.name}</div>
+                            {t.members && (
+                              <div className="text-xs text-slate-400 mt-0.5 line-clamp-1">
+                                {t.members}
+                              </div>
+                            )}
+                          </td>
+                          <td className="p-4 text-slate-300 text-xs">{t.unit}</td>
+                          <td className="p-4 text-center">
+                            <div className="inline-flex items-center gap-1.5">
+                              <input
+                                type="number"
+                                min="0"
+                                max="20"
+                                value={t.round1Score}
+                                onChange={(e) => {
+                                  const val = Math.max(0, Math.min(20, parseFloat(e.target.value) || 0));
+                                  const updated = teams.map((team) =>
+                                    team.id === t.id
+                                      ? { ...team, round1Score: val, totalScore: val + team.round2Score }
+                                      : team
+                                  );
+                                  onUpdateTeams(updated);
+                                  StorageService.saveTeams(updated, true);
+                                }}
+                                className="w-16 px-2 py-1 bg-slate-950 border border-slate-700 focus:border-cyan-400 rounded-lg text-center font-black text-cyan-300 text-sm focus:outline-none"
+                              />
+                              <span className="text-[11px] text-slate-500 font-medium">/ 20</span>
+                            </div>
+                          </td>
+                          <td className="p-4 text-center">
+                            <div className="inline-flex items-center gap-1.5">
+                              <input
+                                type="number"
+                                min="0"
+                                max="30"
+                                step="0.5"
+                                value={t.round2Score}
+                                onChange={(e) => {
+                                  const val = Math.max(0, Math.min(30, parseFloat(e.target.value) || 0));
+                                  const updated = teams.map((team) =>
+                                    team.id === t.id
+                                      ? { ...team, round2Score: val, totalScore: team.round1Score + val }
+                                      : team
+                                  );
+                                  onUpdateTeams(updated);
+                                  StorageService.saveTeams(updated, true);
+                                }}
+                                className="w-16 px-2 py-1 bg-slate-950 border border-slate-700 focus:border-indigo-400 rounded-lg text-center font-black text-indigo-300 text-sm focus:outline-none"
+                              />
+                              <span className="text-[11px] text-slate-500 font-medium">/ 30</span>
+                            </div>
+                          </td>
+                          <td className="p-4 text-center">
+                            <span className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">
+                              {t.round1Score + t.round2Score}
+                            </span>
+                          </td>
+                          <td className="p-4 text-center">
+                            <div className="flex items-center justify-center gap-1.5">
+                              <button
+                                onClick={() => {
+                                  setEditingTeam(t);
+                                  setIsAddingNewTeam(false);
+                                }}
+                                className="p-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-300 hover:text-cyan-300 hover:border-cyan-500/50 transition"
+                                title="Chỉnh sửa thông tin đội thi"
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => setTeamToDelete(t)}
+                                className="p-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-rose-400 hover:border-rose-500/50 transition"
+                                title="Xóa đội thi này"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                 </tbody>
               </table>
+
+              {teams.length === 0 && (
+                <div className="text-center py-12 text-slate-400 text-sm space-y-3">
+                  <Users className="w-8 h-8 text-slate-600 mx-auto" />
+                  <div>Chưa có đội thi nào trong danh sách.</div>
+                  <button
+                    onClick={() => {
+                      setEditingTeam({
+                        id: '',
+                        code: 'T1',
+                        name: '',
+                        unit: 'Xã Tam Hải',
+                        members: '',
+                        round1Score: 0,
+                        round2Score: 0,
+                        totalScore: 0,
+                      });
+                      setIsAddingNewTeam(true);
+                    }}
+                    className="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold inline-flex items-center gap-1.5"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Thêm đội thi đầu tiên</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -1270,6 +1494,181 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black"
                 >
                   Lưu Tình Huống
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal: Edit or Add Team */}
+        {editingTeam && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in duration-150">
+            <div className="w-full max-w-lg bg-slate-900 border border-cyan-500/50 rounded-3xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                <div className="flex items-center gap-2">
+                  <Users className="w-5 h-5 text-cyan-400" />
+                  <h3 className="text-base font-black text-white">
+                    {isAddingNewTeam ? 'THÊM ĐỘI THI MỚI' : `CHỈNH SỬA THÔNG TIN ĐỘI THI`}
+                  </h3>
+                </div>
+                <button
+                  onClick={() => {
+                    setEditingTeam(null);
+                    setIsAddingNewTeam(false);
+                  }}
+                  className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="sm:col-span-1">
+                    <label className="block text-slate-300 font-bold mb-1">Mã đội thi:</label>
+                    <input
+                      type="text"
+                      value={editingTeam.code}
+                      onChange={(e) => setEditingTeam({ ...editingTeam, code: e.target.value.toUpperCase() })}
+                      className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono uppercase text-sm"
+                      placeholder="VD: T1, T2"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-slate-300 font-bold mb-1">Tên Đội thi / Ban CTMT:</label>
+                    <input
+                      type="text"
+                      required
+                      value={editingTeam.name}
+                      onChange={(e) => setEditingTeam({ ...editingTeam, name: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white font-bold text-sm"
+                      placeholder="VD: Ban CTMT Thôn Tân Lập"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-slate-300 font-bold mb-1">Đơn vị / Thôn xã:</label>
+                  <input
+                    type="text"
+                    value={editingTeam.unit}
+                    onChange={(e) => setEditingTeam({ ...editingTeam, unit: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm"
+                    placeholder="VD: Thôn Tân Lập, xã Tam Hải"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-300 font-bold mb-1">Thành viên tham gia / Đại diện:</label>
+                  <input
+                    type="text"
+                    value={editingTeam.members}
+                    onChange={(e) => setEditingTeam({ ...editingTeam, members: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm"
+                    placeholder="VD: 03 thành viên đại diện hoặc danh sách họ tên..."
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-800">
+                  <div>
+                    <label className="block text-cyan-300 font-bold mb-1">Điểm Phần 1 (Max 20):</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="20"
+                      step="1"
+                      value={editingTeam.round1Score}
+                      onChange={(e) => {
+                        const val = Math.max(0, Math.min(20, parseFloat(e.target.value) || 0));
+                        setEditingTeam({
+                          ...editingTeam,
+                          round1Score: val,
+                          totalScore: val + editingTeam.round2Score,
+                        });
+                      }}
+                      className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-cyan-400 font-black text-center text-base"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-indigo-300 font-bold mb-1">Điểm Phần 2 (Max 30):</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="30"
+                      step="0.5"
+                      value={editingTeam.round2Score}
+                      onChange={(e) => {
+                        const val = Math.max(0, Math.min(30, parseFloat(e.target.value) || 0));
+                        setEditingTeam({
+                          ...editingTeam,
+                          round2Score: val,
+                          totalScore: editingTeam.round1Score + val,
+                        });
+                      }}
+                      className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-indigo-400 font-black text-center text-base"
+                    />
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-2xl bg-slate-950/80 border border-slate-800 flex items-center justify-between text-xs">
+                  <span className="text-slate-400 font-bold uppercase">Tổng điểm dự tính:</span>
+                  <span className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">
+                    {(Number(editingTeam.round1Score) || 0) + (Number(editingTeam.round2Score) || 0)} điểm
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingTeam(null);
+                    setIsAddingNewTeam(false);
+                  }}
+                  className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-bold"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSaveTeam(editingTeam)}
+                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 text-xs font-black shadow-lg shadow-cyan-950/40"
+                >
+                  {isAddingNewTeam ? 'Thêm Đội Thi' : 'Lưu Thay Đổi'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal: Delete Team Confirm */}
+        {teamToDelete && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in duration-150">
+            <div className="w-full max-w-md bg-slate-900 border border-rose-500/50 rounded-3xl p-6 shadow-2xl space-y-4">
+              <div className="flex items-center gap-3 text-rose-400">
+                <div className="w-10 h-10 rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center flex-shrink-0">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-white">XÁC NHẬN XÓA ĐỘI THI</h3>
+                  <p className="text-xs text-slate-400">Hành động này không thể hoàn tác</p>
+                </div>
+              </div>
+              <p className="text-xs text-slate-300 leading-relaxed bg-slate-950 p-3 rounded-2xl border border-slate-800">
+                Bạn có chắc chắn muốn xóa đội thi <strong className="text-white font-bold">"{teamToDelete.name}"</strong> (Mã: {teamToDelete.code})? Dữ liệu điểm số và xếp hạng của đội này sẽ được cập nhật ngay lập tức.
+              </p>
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  onClick={() => setTeamToDelete(null)}
+                  className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-bold"
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  onClick={() => handleDeleteTeam(teamToDelete.id)}
+                  className="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-black shadow-lg shadow-rose-950/40"
+                >
+                  Xóa Đội Thi
                 </button>
               </div>
             </div>

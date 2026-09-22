@@ -27,6 +27,7 @@ export interface QuizPackage {
   title: string;
   status: QuestionStatus;
   questions: QuizQuestion[];
+  isAudience?: boolean;
   score?: number; // max 20 (5 pts each)
   results?: {
     questionId: string;

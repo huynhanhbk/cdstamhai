@@ -3,6 +3,29 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      // Compatibility shim: Prevent "Cannot set property fetch of #<Window> which has only a getter"
+      (function () {
+        try {
+          if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
+            var _origFetch = window.fetch.bind(window);
+            var _currentFetch = _origFetch;
+            Object.defineProperty(window, 'fetch', {
+              get: function () {
+                return _currentFetch;
+              },
+              set: function (fn) {
+                _currentFetch = fn;
+              },
+              configurable: true,
+              enumerable: true,
+            });
+          }
+        } catch (e) {
+          // Fallback if property is not configurable
+        }
+      })();
+    </script>
     <title>Hội Thi Ban Công Tác Mặt Trận Với Chuyển Đổi Số</title>
     <meta name="description" content="Hệ thống điều hành và trình chiếu sân khấu Hội thi 'Ban công tác Mặt trận với chuyển đổi số' - UBND & UBMTTQ Việt Nam xã Tam Hải" />
     <meta property="og:title" content="Hội Thi Ban Công Tác Mặt Trận Với Chuyển Đổi Số" />

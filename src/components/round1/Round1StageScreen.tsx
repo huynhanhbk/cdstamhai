@@ -148,13 +148,7 @@ export const Round1StageScreen: React.FC<Round1StageScreenProps> = ({
     setIsAnswerRevealed(false);
     setQuestionVerdict(null);
     resetCurrentTimer();
-    // Auto start timer when question appears
-    setTimeout(() => {
-      triggerStart();
-      timerEndTimeRef.current = Date.now() + TIME_LIMIT * 1000;
-      lastSecondRef.current = TIME_LIMIT;
-      setIsTimerRunning(true);
-    }, 350);
+    // Do NOT auto-start timer: allow MC to read question and options first
   };
 
   // Reveal correct answer
@@ -194,12 +188,7 @@ export const Round1StageScreen: React.FC<Round1StageScreenProps> = ({
       setIsAnswerRevealed(false);
       setQuestionVerdict(null);
       resetCurrentTimer();
-      setTimeout(() => {
-        triggerStart();
-        timerEndTimeRef.current = Date.now() + TIME_LIMIT * 1000;
-        lastSecondRef.current = TIME_LIMIT;
-        setIsTimerRunning(true);
-      }, 300);
+      // Do NOT auto-start timer: allow MC to read question and options first
     } else {
       // Finish package
       const totalScore = newResults.reduce((sum, r) => sum + r.points, 0);
@@ -290,13 +279,15 @@ export const Round1StageScreen: React.FC<Round1StageScreenProps> = ({
         {/* Grand Title */}
         <div className="relative z-10 my-auto py-8">
           <div className="inline-block px-5 py-1.5 rounded-full bg-cyan-950/80 border border-cyan-500/50 text-cyan-300 font-black tracking-widest text-sm uppercase mb-4 shadow-lg shadow-cyan-950/40">
-            MÀN HÌNH SÂN KHẤU
+            {pkg.isAudience || pkg.number === 11 ? 'GIAO LƯU KHÁN GIẢ & CỔ ĐỘNG VIÊN' : 'MÀN HÌNH SÂN KHẤU'}
           </div>
           <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black text-white uppercase tracking-tight drop-shadow-2xl">
             {pkg.title}
           </h1>
           <p className="mt-4 text-slate-300 text-lg md:text-2xl font-medium">
-            Gồm 04 câu hỏi trắc nghiệm • 10 giây/câu • Thí sinh giơ bảng trả lời trực tiếp
+            {pkg.isAudience || pkg.number === 11
+              ? `Gồm ${totalQuestions} câu hỏi trắc nghiệm • 10 giây suy nghĩ/câu • Khán giả trả lời đúng nhận quà từ BTC!`
+              : 'Gồm 04 câu hỏi trắc nghiệm • 10 giây/câu • Thí sinh giơ bảng trả lời trực tiếp'}
           </p>
 
           <div className="mt-10 flex items-center justify-center">
@@ -329,7 +320,7 @@ export const Round1StageScreen: React.FC<Round1StageScreenProps> = ({
       <div className="relative min-h-[calc(100vh-68px)] flex flex-col justify-between items-center p-6 md:p-12 text-center bg-slate-950">
         <div className="relative z-10 w-full max-w-4xl">
           <div className="inline-block px-4 py-1.5 rounded-full bg-emerald-950 border border-emerald-500/40 text-emerald-300 text-xs font-black uppercase tracking-wider mb-4">
-            KẾT THÚC PHẦN THI
+            {pkg.isAudience || pkg.number === 11 ? 'GIAO LƯU KHÁN GIẢ HOÀN THÀNH' : 'KẾT THÚC PHẦN THI'}
           </div>
 
           <h1 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tight">
@@ -337,36 +328,59 @@ export const Round1StageScreen: React.FC<Round1StageScreenProps> = ({
           </h1>
 
           <div className="my-8 p-8 rounded-3xl bg-slate-900/90 border-2 border-cyan-500/40 shadow-2xl max-w-xl mx-auto">
-            <div className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-2">
-              TỔNG ĐIỂM ĐẠT ĐƯỢC
-            </div>
-            <div className="text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400 drop-shadow-xl">
-              {finalScore} <span className="text-3xl md:text-4xl text-slate-400 font-bold">/ 20</span>
-            </div>
-            <div className="text-sm text-cyan-300 font-semibold mt-2">
-              Đạt {finalScore / 5} / 4 câu trả lời đúng
-            </div>
+            {pkg.isAudience || pkg.number === 11 ? (
+              <>
+                <div className="text-sm font-bold text-amber-400 uppercase tracking-widest mb-2">
+                  KẾT QUẢ GIAO LƯU KHÁN GIẢ
+                </div>
+                <div className="text-6xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-300 drop-shadow-xl">
+                  {questionResults.filter((r) => r.isCorrect).length}{' '}
+                  <span className="text-3xl md:text-4xl text-slate-400 font-bold">/ {totalQuestions}</span>
+                </div>
+                <div className="text-sm text-cyan-300 font-semibold mt-2">
+                  {questionResults.filter((r) => r.isCorrect).length} khán giả xuất sắc nhận quà từ Ban Tổ chức
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-2">
+                  TỔNG ĐIỂM ĐẠT ĐƯỢC
+                </div>
+                <div className="text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400 drop-shadow-xl">
+                  {finalScore} <span className="text-3xl md:text-4xl text-slate-400 font-bold">/ 20</span>
+                </div>
+                <div className="text-sm text-cyan-300 font-semibold mt-2">
+                  Đạt {finalScore / 5} / 4 câu trả lời đúng
+                </div>
+              </>
+            )}
           </div>
 
           {/* Breakdown of each question */}
-          <div className="max-w-2xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-3 my-6">
+          <div
+            className={`max-w-4xl mx-auto grid gap-2.5 my-6 ${
+              totalQuestions > 4
+                ? 'grid-cols-2 sm:grid-cols-4 md:grid-cols-7'
+                : 'grid-cols-2 sm:grid-cols-4'
+            }`}
+          >
             {pkg.questions.map((q, idx) => {
               const res = questionResults.find((r) => r.questionId === q.id);
               const isWin = res?.isCorrect ?? false;
               return (
                 <div
                   key={q.id}
-                  className={`p-3 rounded-2xl border text-center ${
+                  className={`p-2.5 rounded-2xl border text-center ${
                     isWin
                       ? 'bg-emerald-950/60 border-emerald-500/50 text-emerald-200'
                       : 'bg-slate-900 border-slate-700 text-slate-400'
                   }`}
                 >
-                  <div className="text-xs font-bold uppercase">Câu {idx + 1}</div>
-                  <div className="text-xl font-black mt-1">
-                    {isWin ? '+5 điểm' : '0 điểm'}
+                  <div className="text-[11px] font-bold uppercase">Câu {idx + 1}</div>
+                  <div className="text-sm font-black mt-0.5">
+                    {isWin ? (pkg.isAudience ? 'Nhận quà' : '+5 điểm') : (pkg.isAudience ? 'Chưa đúng' : '0 điểm')}
                   </div>
-                  <div className="text-[11px] mt-1 text-slate-400">Đáp án: {q.correctAnswer}</div>
+                  <div className="text-[10px] mt-0.5 text-slate-400">Đáp án: {q.correctAnswer}</div>
                 </div>
               );
             })}
@@ -411,48 +425,69 @@ export const Round1StageScreen: React.FC<Round1StageScreenProps> = ({
         </div>
 
         {/* Giant Accurate Countdown Timer */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <div
-            className={`flex items-center gap-2 px-5 py-2 rounded-2xl border-2 shadow-xl transition-all ${
+            onClick={!isTimerRunning && !isTimeOut && timeLeft > 0 ? startTimer : isTimerRunning ? pauseTimer : undefined}
+            className={`flex items-center gap-2.5 px-4 md:px-5 py-2 rounded-2xl border-2 shadow-xl transition-all cursor-pointer select-none ${
               timeLeft === 0
                 ? 'bg-rose-950 border-rose-500 text-rose-300 animate-pulse shadow-rose-950/60'
                 : timeLeft <= 3
                 ? 'bg-amber-950/80 border-amber-400 text-amber-300 animate-bounce shadow-amber-950/60'
+                : !isTimerRunning
+                ? 'bg-slate-900 border-emerald-500/50 text-emerald-300 hover:border-emerald-400 shadow-emerald-950/40'
                 : 'bg-slate-900 border-cyan-500/50 text-cyan-300 shadow-cyan-950/40'
             }`}
+            title={
+              !isTimerRunning && !isTimeOut && timeLeft > 0
+                ? 'Bấm để bắt đầu đếm 10 giây (hoặc bấm phím Space)'
+                : isTimerRunning
+                ? 'Bấm để tạm dừng đếm giờ (hoặc bấm phím Space)'
+                : 'Đã hết thời gian'
+            }
           >
-            <Clock className="w-6 h-6 md:w-8 md:h-8" />
+            <Clock className={`w-6 h-6 md:w-8 md:h-8 ${isTimerRunning ? 'animate-spin' : ''}`} style={{ animationDuration: '4s' }} />
             <div className="text-3xl md:text-5xl font-black font-mono tracking-tight leading-none">
               {timeLeft.toString().padStart(2, '0')}s
             </div>
           </div>
 
           {/* Quick Timer Controls */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             {isTimerRunning ? (
               <button
                 onClick={pauseTimer}
-                className="p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 hover:text-white"
-                title="Tạm dừng đếm giờ (Space)"
+                className="px-3 md:px-4 py-2 md:py-2.5 rounded-xl bg-amber-500/20 border border-amber-500/50 hover:bg-amber-500/30 text-amber-300 font-bold text-xs md:text-sm flex items-center gap-1.5 shadow-lg transition active:scale-95"
+                title="Tạm dừng đếm giờ (Phím Space)"
               >
-                <Pause className="w-5 h-5" />
+                <Pause className="w-4 h-4" />
+                <span>Tạm dừng</span>
               </button>
-            ) : (
+            ) : !isTimeOut && timeLeft === TIME_LIMIT ? (
               <button
                 onClick={startTimer}
-                disabled={isTimeOut}
-                className="p-2.5 rounded-xl bg-cyan-950 border border-cyan-500/50 text-cyan-300 hover:bg-cyan-900 disabled:opacity-40"
-                title="Bắt đầu / Tiếp tục đếm giờ (Space)"
+                className="px-3.5 md:px-4 py-2 md:py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs md:text-sm flex items-center gap-1.5 shadow-lg shadow-emerald-950/50 border border-emerald-300 transition active:scale-95 animate-pulse"
+                title="Bắt đầu đếm ngược 10 giây (Phím Space)"
               >
-                <Play className="w-5 h-5" />
+                <Play className="w-4 h-4 fill-current" />
+                <span>BẮT ĐẦU TÍNH GIỜ (Space)</span>
               </button>
-            )}
+            ) : !isTimeOut && timeLeft > 0 ? (
+              <button
+                onClick={startTimer}
+                className="px-3.5 md:px-4 py-2 md:py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs md:text-sm flex items-center gap-1.5 shadow-lg shadow-cyan-950/50 transition active:scale-95"
+                title="Tiếp tục đếm giờ (Phím Space)"
+              >
+                <Play className="w-4 h-4 fill-current" />
+                <span>Tiếp tục ({timeLeft}s)</span>
+              </button>
+            ) : null}
+
             <button
               onClick={resetCurrentTimer}
-              className="p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-400 hover:text-cyan-300"
-              title="Reset 10s câu này (Phím R)"
+              className="p-2 md:p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-400 hover:text-cyan-300 hover:border-slate-500 transition"
+              title="Đặt lại 10 giây (Phím R)"
             >
-              <RotateCcw className="w-5 h-5" />
+              <RotateCcw className="w-4 h-4 md:w-5 md:h-5" />
             </button>
           </div>
         </div>
