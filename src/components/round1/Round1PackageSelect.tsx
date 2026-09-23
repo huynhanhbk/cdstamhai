@@ -47,7 +47,7 @@ export const Round1PackageSelect: React.FC<Round1PackageSelectProps> = ({
   };
 
   return (
-    <div className="relative min-h-[calc(100vh-68px)] p-4 md:p-8 lg:p-10 flex flex-col justify-between bg-slate-950">
+    <div className="relative min-h-[calc(100vh-68px)] p-6 md:p-8 lg:p-12 flex flex-col justify-between bg-slate-950">
       {/* Background Decor */}
       <div className="absolute inset-0 pointer-events-none opacity-20">
         <div
@@ -60,7 +60,7 @@ export const Round1PackageSelect: React.FC<Round1PackageSelectProps> = ({
       </div>
 
       {/* Header */}
-      <div className="relative z-10 max-w-6xl mx-auto w-full flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+      <div className="relative z-10 max-w-full mx-auto w-full flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
         <div className="flex items-center gap-4">
           <button
             onClick={onBackToHome}
@@ -103,7 +103,7 @@ export const Round1PackageSelect: React.FC<Round1PackageSelectProps> = ({
       </div>
 
       {/* Main Grid: 10 Competitive Packages for Teams */}
-      <div className="relative z-10 max-w-6xl mx-auto w-full my-6">
+      <div className="relative z-10 max-w-full mx-auto w-full my-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse" />

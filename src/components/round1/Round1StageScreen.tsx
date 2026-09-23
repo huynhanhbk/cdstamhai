@@ -494,7 +494,7 @@ export const Round1StageScreen: React.FC<Round1StageScreenProps> = ({
       </div>
 
       {/* Main Question Display - Large font, High contrast */}
-      <div className="relative z-10 max-w-6xl w-full mx-auto my-auto py-3 md:py-6">
+      <div className="relative z-10 max-w-full w-full mx-auto my-auto py-3 md:py-6">
         {/* Status banner when time out */}
         {isTimeOut && (
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl bg-rose-600/90 text-white font-black text-sm uppercase tracking-wider mb-4 animate-bounce">

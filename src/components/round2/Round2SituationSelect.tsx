@@ -37,7 +37,7 @@ export const Round2SituationSelect: React.FC<Round2SituationSelectProps> = ({
   };
 
   return (
-    <div className="relative min-h-[calc(100vh-68px)] p-4 md:p-8 lg:p-10 flex flex-col justify-between bg-slate-950">
+    <div className="relative min-h-[calc(100vh-68px)] p-6 md:p-8 lg:p-12 flex flex-col justify-between bg-slate-950">
       {/* Background Grid Pattern */}
       <div className="absolute inset-0 pointer-events-none opacity-20">
         <div
@@ -50,7 +50,7 @@ export const Round2SituationSelect: React.FC<Round2SituationSelectProps> = ({
       </div>
 
       {/* Header */}
-      <div className="relative z-10 max-w-6xl mx-auto w-full flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+      <div className="relative z-10 max-w-full mx-auto w-full flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
         <div className="flex items-center gap-4">
           <button
             onClick={onBackToHome}
@@ -93,7 +93,7 @@ export const Round2SituationSelect: React.FC<Round2SituationSelectProps> = ({
       </div>
 
       {/* Strict Stage Selection: ONLY DISPLAY "TÌNH HUỐNG SỐ 1" ... "TÌNH HUỐNG SỐ 14" */}
-      <div className="relative z-10 max-w-6xl mx-auto w-full my-8">
+      <div className="relative z-10 max-w-full mx-auto w-full my-8">
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-5">
           {situations.map((sit) => {
             const isCompleted = sit.status === 'completed';

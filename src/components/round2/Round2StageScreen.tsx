@@ -223,7 +223,7 @@ export const Round2StageScreen: React.FC<Round2StageScreenProps> = ({
   });
 
   return (
-    <div className="relative min-h-[calc(100vh-68px)] flex flex-col justify-between p-4 md:p-6 lg:p-8 bg-slate-950 select-none overflow-hidden">
+    <div className="relative min-h-[calc(100vh-68px)] flex flex-col justify-between p-6 md:p-8 lg:p-12 bg-slate-950 select-none overflow-hidden">
       {/* Stage Header */}
       <div className="relative z-10 w-full flex items-center justify-between gap-4 pb-3 border-b border-slate-800">
         <div className="flex items-center gap-3">

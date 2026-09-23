@@ -79,7 +79,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
       </div>
 
       {/* Two Grand Competition Portals */}
-      <div className="relative z-10 max-w-6xl w-full mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 my-8">
+      <div className="relative z-10 max-w-full w-full mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 my-8">
         {/* ROUND 1 CARD */}
         <div className="group relative rounded-3xl bg-gradient-to-b from-slate-900/90 to-slate-950/90 border-2 border-cyan-500/30 hover:border-cyan-400 transition-all duration-300 shadow-2xl hover:shadow-cyan-500/20 p-6 md:p-8 flex flex-col justify-between">
           <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700 text-xs font-semibold text-slate-300">
