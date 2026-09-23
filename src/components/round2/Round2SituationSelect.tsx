@@ -157,7 +157,7 @@ export const Round2SituationSelect: React.FC<Round2SituationSelectProps> = ({
 
       {/* Stage Note */}
       <div className="relative z-10 max-w-4xl mx-auto w-full text-center text-xs md:text-sm text-slate-400 p-3 rounded-2xl bg-slate-900/60 border border-slate-800">
-        <span className="text-indigo-400 font-bold">Màn hình chỉ hiển thị số thứ tự tình huống nhằm phục vụ đại diện các đội bốc thăm ngẫu nhiên trên sân khấu. Bạn có thể nhấn trực tiếp vào ô tình huống hoặc sử dụng nút <strong className="text-indigo-300">Bốc Thăm Ngẫu Nhiên</strong>.
+        <span className="text-indigo-400 font-bold"></span>Màn hình chỉ hiển thị số thứ tự tình huống nhằm phục vụ đại diện các đội bốc thăm ngẫu nhiên trên sân khấu. Bạn có thể nhấn trực tiếp vào ô tình huống hoặc sử dụng nút <strong className="text-indigo-300">Bốc Thăm Ngẫu Nhiên</strong>.
       </div>
 
       {/* Random Draw Modal for Round 2 */}
