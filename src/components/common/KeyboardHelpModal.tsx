@@ -20,22 +20,22 @@ export const KeyboardHelpModal: React.FC<KeyboardHelpModalProps> = ({ isOpen, on
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
-      <div className="relative w-full max-w-lg bg-slate-900 border border-cyan-500/30 rounded-2xl shadow-2xl p-6 text-slate-100">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 dark:bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
+      <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-cyan-500/30 rounded-2xl shadow-2xl p-6 text-slate-900 dark:text-slate-100 transition-colors duration-200">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition"
+          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition"
         >
           <X className="w-5 h-5" />
         </button>
 
-        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-800">
-          <div className="p-2.5 rounded-xl bg-cyan-500/20 text-cyan-400">
+        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-200 dark:border-slate-800">
+          <div className="p-2.5 rounded-xl bg-cyan-100 dark:bg-cyan-500/20 text-cyan-700 dark:text-cyan-400">
             <Keyboard className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-white">Phím Tắt Điều Hành Sân Khấu</h3>
-            <p className="text-xs text-slate-400">Hỗ trợ kỹ thuật viên thao tác nhanh bằng bàn phím</p>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Phím Tắt Điều Hành Sân Khấu</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Hỗ trợ kỹ thuật viên thao tác nhanh bằng bàn phím</p>
           </div>
         </div>
 
@@ -43,17 +43,17 @@ export const KeyboardHelpModal: React.FC<KeyboardHelpModalProps> = ({ isOpen, on
           {shortcuts.map((sc, idx) => (
             <div
               key={idx}
-              className="flex items-center justify-between p-3 rounded-xl bg-slate-800/60 border border-slate-700/50"
+              className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50"
             >
-              <span className="text-sm font-medium text-slate-200">{sc.desc}</span>
-              <kbd className="px-3 py-1 bg-slate-950 border border-cyan-500/40 rounded-lg text-cyan-300 font-mono text-xs font-semibold shadow-inner">
+              <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{sc.desc}</span>
+              <kbd className="px-3 py-1 bg-white dark:bg-slate-950 border border-cyan-400 dark:border-cyan-500/40 rounded-lg text-cyan-800 dark:text-cyan-300 font-mono text-xs font-bold shadow-inner">
                 {sc.key}
               </kbd>
             </div>
           ))}
         </div>
 
-        <div className="mt-6 pt-4 border-t border-slate-800 text-center">
+        <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 text-center">
           <button
             type="button"
             onClick={onClose}

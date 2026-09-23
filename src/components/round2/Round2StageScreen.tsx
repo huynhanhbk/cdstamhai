@@ -223,21 +223,21 @@ export const Round2StageScreen: React.FC<Round2StageScreenProps> = ({
   });
 
   return (
-    <div className="relative min-h-[calc(100vh-68px)] flex flex-col justify-between p-6 md:p-8 lg:p-12 bg-slate-950 select-none overflow-hidden">
+    <div className="relative min-h-[calc(100vh-68px)] flex flex-col justify-between p-6 md:p-8 lg:p-12 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 select-none overflow-hidden transition-colors duration-200">
       {/* Stage Header */}
-      <div className="relative z-10 w-full flex items-center justify-between gap-4 pb-3 border-b border-slate-800">
+      <div className="relative z-10 w-full flex items-center justify-between gap-4 pb-3 border-b border-slate-200 dark:border-slate-800">
         <div className="flex items-center gap-3">
           <button
             onClick={onBackToSituationList}
-            className="p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 hover:text-white transition"
+            className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white shadow-sm transition"
             title="Quay lại danh sách tình huống"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <div className="px-3.5 py-1 rounded-xl bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 text-sm font-black uppercase">
+          <div className="px-3.5 py-1 rounded-xl bg-indigo-100 dark:bg-indigo-500/20 border border-indigo-300 dark:border-indigo-500/40 text-indigo-800 dark:text-indigo-300 text-sm font-black uppercase">
             {situation.title}
           </div>
-          <div className="hidden sm:block text-sm md:text-base font-bold text-slate-300">
+          <div className="hidden sm:block text-sm md:text-base font-bold text-slate-700 dark:text-slate-300">
             PHẦN THI: XỬ LÝ TÌNH HUỐNG (TỐI ĐA 30 ĐIỂM)
           </div>
         </div>
@@ -246,12 +246,12 @@ export const Round2StageScreen: React.FC<Round2StageScreenProps> = ({
         <div className="flex items-center gap-3 md:gap-4">
           {/* Main 07:00 countdown timer */}
           <div
-            className={`flex items-center gap-2 px-4 md:px-5 py-2 rounded-2xl border-2 shadow-xl transition-all ${
+            className={`flex items-center gap-2 px-4 md:px-5 py-2 rounded-2xl border-2 shadow-lg dark:shadow-xl transition-all ${
               timeLeft === 0
-                ? 'bg-rose-950/80 border-rose-500 text-rose-300 shadow-rose-950/50'
+                ? 'bg-rose-100 dark:bg-rose-950/80 border-rose-500 text-rose-800 dark:text-rose-300 shadow-rose-950/20 dark:shadow-rose-950/50'
                 : timeLeft <= 60
-                ? 'bg-amber-950/80 border-amber-400 text-amber-300 shadow-amber-950/50 animate-pulse'
-                : 'bg-slate-900 border-indigo-500/50 text-indigo-300 shadow-indigo-950/40'
+                ? 'bg-amber-100 dark:bg-amber-950/80 border-amber-500 dark:border-amber-400 text-amber-800 dark:text-amber-300 shadow-amber-950/20 dark:shadow-amber-950/50 animate-pulse'
+                : 'bg-indigo-50 dark:bg-slate-900 border-indigo-400 dark:border-indigo-500/50 text-indigo-900 dark:text-indigo-300 shadow-indigo-950/20 dark:shadow-indigo-950/40'
             }`}
           >
             <Clock className="w-6 h-6 md:w-7 md:h-7" />
@@ -262,7 +262,7 @@ export const Round2StageScreen: React.FC<Round2StageScreenProps> = ({
 
           {/* Overtime display if applicable */}
           {overtimeSeconds > 0 && (
-            <div className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-rose-950 border-2 border-rose-500 text-rose-300 animate-pulse shadow-lg">
+            <div className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-rose-100 dark:bg-rose-950 border-2 border-rose-500 text-rose-800 dark:text-rose-300 animate-pulse shadow-lg">
               <AlertTriangle className="w-5 h-5" />
               <div className="text-xl md:text-2xl font-mono font-black">
                 +{formatTime(overtimeSeconds)}
@@ -275,7 +275,7 @@ export const Round2StageScreen: React.FC<Round2StageScreenProps> = ({
             {isTimerRunning ? (
               <button
                 onClick={pauseTimer}
-                className="p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 hover:text-white"
+                className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white shadow-sm"
                 title="Tạm dừng (Space)"
               >
                 <Pause className="w-5 h-5" />
@@ -283,7 +283,7 @@ export const Round2StageScreen: React.FC<Round2StageScreenProps> = ({
             ) : (
               <button
                 onClick={startTimer}
-                className="p-2.5 rounded-xl bg-indigo-950 border border-indigo-500/50 text-indigo-300 hover:bg-indigo-900"
+                className="p-2.5 rounded-xl bg-indigo-100 dark:bg-indigo-950 border border-indigo-300 dark:border-indigo-500/50 text-indigo-800 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-900 shadow-sm"
                 title="Bắt đầu / Tiếp tục (Space)"
               >
                 <Play className="w-5 h-5" />
@@ -291,7 +291,7 @@ export const Round2StageScreen: React.FC<Round2StageScreenProps> = ({
             )}
             <button
               onClick={resetTimer}
-              className="p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-400 hover:text-indigo-300"
+              className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-indigo-700 dark:hover:text-indigo-300 shadow-sm"
               title="Reset 07:00 (Phím R)"
             >
               <RotateCcw className="w-5 h-5" />
@@ -304,7 +304,7 @@ export const Round2StageScreen: React.FC<Round2StageScreenProps> = ({
       <div className="relative z-10 max-w-5xl w-full mx-auto my-auto py-4 md:py-6">
         {/* Warning notification when base time runs out */}
         {isBaseTimeOut && (
-          <div className="p-3 mb-4 rounded-2xl bg-rose-600/90 text-white font-black text-sm md:text-base uppercase tracking-wider flex items-center justify-between gap-3 shadow-lg animate-bounce">
+          <div className="p-3 mb-4 rounded-2xl bg-rose-600 text-white font-black text-sm md:text-base uppercase tracking-wider flex items-center justify-between gap-3 shadow-lg animate-bounce">
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-5 h-5" />
               <span>ĐÃ HẾT 07 PHÚT QUY ĐỊNH</span>
@@ -321,17 +321,17 @@ export const Round2StageScreen: React.FC<Round2StageScreenProps> = ({
         )}
 
         {/* Grand Card for Situation Text */}
-        <div className="p-6 md:p-10 rounded-3xl bg-slate-900/95 border-2 border-indigo-500/40 shadow-2xl">
-          <div className="flex items-center justify-between gap-4 mb-4 pb-3 border-b border-slate-800">
-            <span className="text-xs md:text-sm font-black tracking-widest text-indigo-400 uppercase">
+        <div className="p-6 md:p-10 rounded-3xl bg-white dark:bg-slate-900/95 border-2 border-indigo-400/60 dark:border-indigo-500/40 shadow-xl dark:shadow-2xl">
+          <div className="flex items-center justify-between gap-4 mb-4 pb-3 border-b border-slate-200 dark:border-slate-800">
+            <span className="text-xs md:text-sm font-black tracking-widest text-indigo-700 dark:text-indigo-400 uppercase">
               NỘI DUNG TÌNH HUỐNG THỰC TẾ TẠI ĐỊA PHƯƠNG
             </span>
-            <span className="text-xs text-slate-400">
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
               Đội thi có tối đa 07 phút để hội ý và trình bày
             </span>
           </div>
 
-          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold text-white leading-relaxed tracking-tight">
+          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white leading-relaxed tracking-tight">
             {situation.content}
           </h2>
 
@@ -340,7 +340,7 @@ export const Round2StageScreen: React.FC<Round2StageScreenProps> = ({
               <img
                 src={situation.imageUrl}
                 alt="Minh họa tình huống"
-                className="object-contain max-h-56 rounded-xl border border-slate-700"
+                className="object-contain max-h-56 rounded-xl border border-slate-300 dark:border-slate-700"
               />
             </div>
           )}
@@ -348,14 +348,14 @@ export const Round2StageScreen: React.FC<Round2StageScreenProps> = ({
       </div>
 
       {/* Operator Scoring & Verdict Panel */}
-      <div className="relative z-10 w-full max-w-5xl mx-auto pt-4 border-t border-slate-800/80">
-        <div className="p-4 md:p-5 rounded-2xl bg-slate-900/90 border border-slate-700/80 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="relative z-10 w-full max-w-5xl mx-auto pt-4 border-t border-slate-200 dark:border-slate-800/80">
+        <div className="p-4 md:p-5 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-300 dark:border-slate-700/80 flex flex-col md:flex-row items-center justify-between gap-4 shadow-md">
           {/* Overtime Controls */}
           <div className="flex items-center gap-3">
             {isBaseTimeOut && !isOvertimeMode && (
               <button
                 onClick={handleStartOvertime}
-                className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm flex items-center gap-2 shadow-lg shadow-rose-950/50"
+                className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm flex items-center gap-2 shadow-lg shadow-rose-950/20 dark:shadow-rose-950/50"
               >
                 <Clock className="w-4 h-4" />
                 <span>Bắt đầu tính vượt giờ</span>
@@ -372,16 +372,16 @@ export const Round2StageScreen: React.FC<Round2StageScreenProps> = ({
               </button>
             )}
 
-            <div className="text-xs text-slate-300">
-              <div>Vượt giờ: <strong className="text-rose-400">{overtimeSeconds}s</strong></div>
-              <div>Điểm trừ: <strong className="text-rose-400">-{penaltyPoints}đ</strong></div>
+            <div className="text-xs text-slate-700 dark:text-slate-300 font-medium">
+              <div>Vượt giờ: <strong className="text-rose-600 dark:text-rose-400">{overtimeSeconds}s</strong></div>
+              <div>Điểm trừ: <strong className="text-rose-600 dark:text-rose-400">-{penaltyPoints}đ</strong></div>
             </div>
           </div>
 
           {/* Judge score input & Official Score Calculation */}
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <label htmlFor="judge-score" className="text-xs md:text-sm font-bold text-slate-300">
+              <label htmlFor="judge-score" className="text-xs md:text-sm font-bold text-slate-700 dark:text-slate-300">
                 Điểm BGK (0-30):
               </label>
               <input
@@ -392,15 +392,15 @@ export const Round2StageScreen: React.FC<Round2StageScreenProps> = ({
                 step="0.5"
                 value={judgeScoreInput}
                 onChange={(e) => setJudgeScoreInput(e.target.value)}
-                className="w-20 px-3 py-1.5 rounded-xl bg-slate-950 border-2 border-indigo-500 text-center font-black text-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                className="w-20 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-950 border-2 border-indigo-500 text-center font-black text-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
               />
             </div>
 
             {/* Official Score Result */}
-            <div className="px-4 py-1.5 rounded-xl bg-indigo-950 border border-indigo-500/50 text-center">
-              <div className="text-[10px] uppercase font-bold text-indigo-300">ĐIỂM CHÍNH THỨC</div>
-              <div className="text-2xl md:text-3xl font-black text-emerald-400">
-                {finalScore} <span className="text-xs text-slate-400 font-normal">/ 30</span>
+            <div className="px-4 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950 border border-indigo-300 dark:border-indigo-500/50 text-center shadow-sm">
+              <div className="text-[10px] uppercase font-bold text-indigo-700 dark:text-indigo-300">ĐIỂM CHÍNH THỨC</div>
+              <div className="text-2xl md:text-3xl font-black text-emerald-600 dark:text-emerald-400">
+                {finalScore} <span className="text-xs text-slate-500 dark:text-slate-400 font-normal">/ 30</span>
               </div>
             </div>
 
@@ -408,7 +408,7 @@ export const Round2StageScreen: React.FC<Round2StageScreenProps> = ({
             <button
               id="save-round2-btn"
               onClick={handleSaveResult}
-              className="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black text-sm md:text-base flex items-center gap-2 shadow-xl shadow-emerald-950/40 transition active:scale-95"
+              className="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black text-sm md:text-base flex items-center gap-2 shadow-xl shadow-emerald-950/20 dark:shadow-emerald-950/40 transition active:scale-95"
             >
               <Save className="w-5 h-5" />
               <span>LƯU KẾT QUẢ</span>
@@ -418,7 +418,7 @@ export const Round2StageScreen: React.FC<Round2StageScreenProps> = ({
 
         {/* Feedback after saving */}
         {isScoringComplete && (
-          <div className="mt-3 p-3 rounded-xl bg-emerald-950/80 border border-emerald-500/60 text-emerald-300 text-sm font-semibold flex items-center justify-between">
+          <div className="mt-3 p-3 rounded-xl bg-emerald-100 dark:bg-emerald-950/80 border border-emerald-400 dark:border-emerald-500/60 text-emerald-900 dark:text-emerald-300 text-sm font-semibold flex items-center justify-between shadow-sm">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-5 h-5" />
               <span>Đã ghi nhận kết quả {situation.title}: {finalScore}/30 điểm (Điểm gốc: {rawJudgeScore}, Trừ vượt giờ: -{penaltyPoints}đ)</span>

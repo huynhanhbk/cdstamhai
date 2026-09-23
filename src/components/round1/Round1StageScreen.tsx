@@ -251,13 +251,13 @@ export const Round1StageScreen: React.FC<Round1StageScreenProps> = ({
   // ==========================================
   if (stagePhase === 'intro') {
     return (
-      <div className="relative min-h-[calc(100vh-68px)] flex flex-col justify-between items-center p-6 md:p-12 text-center bg-slate-950 overflow-hidden">
+      <div className="relative min-h-[calc(100vh-68px)] flex flex-col justify-between items-center p-6 md:p-12 text-center bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 overflow-hidden transition-colors duration-200">
         {/* Background ambient lighting */}
-        <div className="absolute inset-0 pointer-events-none opacity-25">
+        <div className="absolute inset-0 pointer-events-none opacity-15 dark:opacity-25">
           <div
             className="w-full h-full"
             style={{
-              backgroundImage: `radial-gradient(#38bdf8 1.5px, transparent 1.5px)`,
+              backgroundImage: `radial-gradient(#0284c7 1.5px, transparent 1.5px)`,
               backgroundSize: '48px 48px',
             }}
           />
@@ -266,25 +266,25 @@ export const Round1StageScreen: React.FC<Round1StageScreenProps> = ({
         <div className="relative z-10 w-full flex justify-between items-center max-w-5xl">
           <button
             onClick={onBackToPackageList}
-            className="px-4 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 hover:text-white flex items-center gap-2 text-sm font-semibold transition"
+            className="px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white flex items-center gap-2 text-sm font-semibold transition shadow-sm"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Quay lại danh sách gói</span>
           </button>
-          <div className="text-cyan-400 text-sm font-bold tracking-widest uppercase">
+          <div className="text-cyan-700 dark:text-cyan-400 text-sm font-bold tracking-widest uppercase">
             PHẦN THI: HIỂU BIẾT SỐ
           </div>
         </div>
 
         {/* Grand Title */}
         <div className="relative z-10 my-auto py-8">
-          <div className="inline-block px-5 py-1.5 rounded-full bg-cyan-950/80 border border-cyan-500/50 text-cyan-300 font-black tracking-widest text-sm uppercase mb-4 shadow-lg shadow-cyan-950/40">
+          <div className="inline-block px-5 py-1.5 rounded-full bg-cyan-100 dark:bg-cyan-950/80 border border-cyan-400 dark:border-cyan-500/50 text-cyan-800 dark:text-cyan-300 font-black tracking-widest text-sm uppercase mb-4 shadow-sm dark:shadow-lg dark:shadow-cyan-950/40">
             {pkg.isAudience || pkg.number === 11 ? 'GIAO LƯU KHÁN GIẢ & CỔ ĐỘNG VIÊN' : 'MÀN HÌNH SÂN KHẤU'}
           </div>
-          <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black text-white uppercase tracking-tight drop-shadow-2xl">
+          <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black text-slate-900 dark:text-white uppercase tracking-tight drop-shadow-sm dark:drop-shadow-2xl">
             {pkg.title}
           </h1>
-          <p className="mt-4 text-slate-300 text-lg md:text-2xl font-medium">
+          <p className="mt-4 text-slate-700 dark:text-slate-300 text-lg md:text-2xl font-medium">
             {pkg.isAudience || pkg.number === 11
               ? `Gồm ${totalQuestions} câu hỏi trắc nghiệm • 10 giây suy nghĩ/câu • Khán giả trả lời đúng nhận quà từ BTC!`
               : 'Gồm 04 câu hỏi trắc nghiệm • 10 giây/câu • Thí sinh giơ bảng trả lời trực tiếp'}
@@ -300,10 +300,10 @@ export const Round1StageScreen: React.FC<Round1StageScreenProps> = ({
               <span>BẮT ĐẦU</span>
             </button>
           </div>
-          <p className="mt-4 text-xs text-slate-400">Có thể bấm phím [Space] trên bàn phím để bắt đầu</p>
+          <p className="mt-4 text-xs text-slate-500 dark:text-slate-400 font-medium">Có thể bấm phím [Space] trên bàn phím để bắt đầu</p>
         </div>
 
-        <div className="relative z-10 text-xs text-slate-400">
+        <div className="relative z-10 text-xs text-slate-500 dark:text-slate-400 font-medium">
           Ủy ban nhân dân và Ủy ban MTTQ Việt Nam xã Tam Hải
         </div>
       </div>
@@ -317,39 +317,39 @@ export const Round1StageScreen: React.FC<Round1StageScreenProps> = ({
     const finalScore = questionResults.reduce((acc, r) => acc + r.points, 0);
 
     return (
-      <div className="relative min-h-[calc(100vh-68px)] flex flex-col justify-between items-center p-6 md:p-12 text-center bg-slate-950">
+      <div className="relative min-h-[calc(100vh-68px)] flex flex-col justify-between items-center p-6 md:p-12 text-center bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200">
         <div className="relative z-10 w-full max-w-4xl">
-          <div className="inline-block px-4 py-1.5 rounded-full bg-emerald-950 border border-emerald-500/40 text-emerald-300 text-xs font-black uppercase tracking-wider mb-4">
+          <div className="inline-block px-4 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-950 border border-emerald-400 dark:border-emerald-500/40 text-emerald-800 dark:text-emerald-300 text-xs font-black uppercase tracking-wider mb-4">
             {pkg.isAudience || pkg.number === 11 ? 'GIAO LƯU KHÁN GIẢ HOÀN THÀNH' : 'KẾT THÚC PHẦN THI'}
           </div>
 
-          <h1 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tight">
+          <h1 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white uppercase tracking-tight">
             HOÀN THÀNH {pkg.title}
           </h1>
 
-          <div className="my-8 p-8 rounded-3xl bg-slate-900/90 border-2 border-cyan-500/40 shadow-2xl max-w-xl mx-auto">
+          <div className="my-8 p-8 rounded-3xl bg-white dark:bg-slate-900/90 border-2 border-cyan-400/60 dark:border-cyan-500/40 shadow-xl dark:shadow-2xl max-w-xl mx-auto">
             {pkg.isAudience || pkg.number === 11 ? (
               <>
-                <div className="text-sm font-bold text-amber-400 uppercase tracking-widest mb-2">
+                <div className="text-sm font-bold text-amber-600 dark:text-amber-400 uppercase tracking-widest mb-2">
                   KẾT QUẢ GIAO LƯU KHÁN GIẢ
                 </div>
-                <div className="text-6xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-300 drop-shadow-xl">
+                <div className="text-6xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-yellow-500 dark:from-amber-400 dark:to-yellow-300 drop-shadow-sm">
                   {questionResults.filter((r) => r.isCorrect).length}{' '}
                   <span className="text-3xl md:text-4xl text-slate-400 font-bold">/ {totalQuestions}</span>
                 </div>
-                <div className="text-sm text-cyan-300 font-semibold mt-2">
+                <div className="text-sm text-cyan-700 dark:text-cyan-300 font-semibold mt-2">
                   {questionResults.filter((r) => r.isCorrect).length} khán giả xuất sắc nhận quà từ Ban Tổ chức
                 </div>
               </>
             ) : (
               <>
-                <div className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-2">
+                <div className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
                   TỔNG ĐIỂM ĐẠT ĐƯỢC
                 </div>
-                <div className="text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400 drop-shadow-xl">
+                <div className="text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-cyan-600 dark:from-emerald-400 dark:to-cyan-400 drop-shadow-sm">
                   {finalScore} <span className="text-3xl md:text-4xl text-slate-400 font-bold">/ 20</span>
                 </div>
-                <div className="text-sm text-cyan-300 font-semibold mt-2">
+                <div className="text-sm text-cyan-700 dark:text-cyan-300 font-semibold mt-2">
                   Đạt {finalScore / 5} / 4 câu trả lời đúng
                 </div>
               </>
@@ -372,15 +372,15 @@ export const Round1StageScreen: React.FC<Round1StageScreenProps> = ({
                   key={q.id}
                   className={`p-2.5 rounded-2xl border text-center ${
                     isWin
-                      ? 'bg-emerald-950/60 border-emerald-500/50 text-emerald-200'
-                      : 'bg-slate-900 border-slate-700 text-slate-400'
+                      ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-400 dark:border-emerald-500/50 text-emerald-900 dark:text-emerald-200'
+                      : 'bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400'
                   }`}
                 >
                   <div className="text-[11px] font-bold uppercase">Câu {idx + 1}</div>
                   <div className="text-sm font-black mt-0.5">
                     {isWin ? (pkg.isAudience ? 'Nhận quà' : '+5 điểm') : (pkg.isAudience ? 'Chưa đúng' : '0 điểm')}
                   </div>
-                  <div className="text-[10px] mt-0.5 text-slate-400">Đáp án: {q.correctAnswer}</div>
+                  <div className="text-[10px] mt-0.5 text-slate-500 dark:text-slate-400">Đáp án: {q.correctAnswer}</div>
                 </div>
               );
             })}
@@ -390,7 +390,7 @@ export const Round1StageScreen: React.FC<Round1StageScreenProps> = ({
             <button
               id="back-to-pkgs-btn"
               onClick={onBackToPackageList}
-              className="px-8 py-4 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xl font-black tracking-wide shadow-xl shadow-cyan-950/50 transition-transform active:scale-95 flex items-center gap-3"
+              className="px-8 py-4 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xl font-black tracking-wide shadow-xl shadow-cyan-950/20 dark:shadow-cyan-950/50 transition-transform active:scale-95 flex items-center gap-3"
             >
               <span>QUAY VỀ DANH SÁCH GÓI</span>
               <ArrowRight className="w-6 h-6 text-slate-950 font-bold" />
@@ -412,14 +412,14 @@ export const Round1StageScreen: React.FC<Round1StageScreenProps> = ({
   ];
 
   return (
-    <div className="relative min-h-[calc(100vh-68px)] flex flex-col justify-between p-6 md:p-8 lg:p-12 bg-slate-950 select-none overflow-hidden">
+    <div className="relative min-h-[calc(100vh-68px)] flex flex-col justify-between p-6 md:p-8 lg:p-12 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 select-none overflow-hidden transition-colors duration-200">
       {/* Top Header Information for Stage */}
-      <div className="relative z-10 w-full flex items-center justify-between gap-4 pb-3 border-b border-slate-800">
+      <div className="relative z-10 w-full flex items-center justify-between gap-4 pb-3 border-b border-slate-200 dark:border-slate-800">
         <div className="flex items-center gap-3">
-          <div className="px-3.5 py-1 rounded-xl bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 text-sm font-black uppercase">
+          <div className="px-3.5 py-1 rounded-xl bg-cyan-100 dark:bg-cyan-500/20 border border-cyan-300 dark:border-cyan-500/40 text-cyan-800 dark:text-cyan-300 text-sm font-black uppercase">
             {pkg.title}
           </div>
-          <div className="text-lg md:text-xl font-extrabold text-white">
+          <div className="text-lg md:text-xl font-extrabold text-slate-900 dark:text-white">
             CÂU HỎI {currentQuestionNumber} / {totalQuestions}
           </div>
         </div>
@@ -428,14 +428,14 @@ export const Round1StageScreen: React.FC<Round1StageScreenProps> = ({
         <div className="flex items-center gap-3">
           <div
             onClick={!isTimerRunning && !isTimeOut && timeLeft > 0 ? startTimer : isTimerRunning ? pauseTimer : undefined}
-            className={`flex items-center gap-2.5 px-4 md:px-5 py-2 rounded-2xl border-2 shadow-xl transition-all cursor-pointer select-none ${
+            className={`flex items-center gap-2.5 px-4 md:px-5 py-2 rounded-2xl border-2 shadow-lg dark:shadow-xl transition-all cursor-pointer select-none ${
               timeLeft === 0
-                ? 'bg-rose-950 border-rose-500 text-rose-300 animate-pulse shadow-rose-950/60'
+                ? 'bg-rose-100 dark:bg-rose-950 border-rose-500 text-rose-800 dark:text-rose-300 animate-pulse shadow-rose-950/30 dark:shadow-rose-950/60'
                 : timeLeft <= 3
-                ? 'bg-amber-950/80 border-amber-400 text-amber-300 animate-bounce shadow-amber-950/60'
+                ? 'bg-amber-100 dark:bg-amber-950/80 border-amber-500 dark:border-amber-400 text-amber-800 dark:text-amber-300 animate-bounce shadow-amber-950/30 dark:shadow-amber-950/60'
                 : !isTimerRunning
-                ? 'bg-slate-900 border-emerald-500/50 text-emerald-300 hover:border-emerald-400 shadow-emerald-950/40'
-                : 'bg-slate-900 border-cyan-500/50 text-cyan-300 shadow-cyan-950/40'
+                ? 'bg-emerald-50 dark:bg-slate-900 border-emerald-500/60 text-emerald-800 dark:text-emerald-300 hover:border-emerald-500 shadow-emerald-950/20'
+                : 'bg-cyan-50 dark:bg-slate-900 border-cyan-500/60 text-cyan-800 dark:text-cyan-300 shadow-cyan-950/20'
             }`}
             title={
               !isTimerRunning && !isTimeOut && timeLeft > 0
@@ -456,7 +456,7 @@ export const Round1StageScreen: React.FC<Round1StageScreenProps> = ({
             {isTimerRunning ? (
               <button
                 onClick={pauseTimer}
-                className="px-3 md:px-4 py-2 md:py-2.5 rounded-xl bg-amber-500/20 border border-amber-500/50 hover:bg-amber-500/30 text-amber-300 font-bold text-xs md:text-sm flex items-center gap-1.5 shadow-lg transition active:scale-95"
+                className="px-3 md:px-4 py-2 md:py-2.5 rounded-xl bg-amber-100 dark:bg-amber-500/20 border border-amber-300 dark:border-amber-500/50 hover:bg-amber-200 dark:hover:bg-amber-500/30 text-amber-800 dark:text-amber-300 font-bold text-xs md:text-sm flex items-center gap-1.5 shadow-md transition active:scale-95"
                 title="Tạm dừng đếm giờ (Phím Space)"
               >
                 <Pause className="w-4 h-4" />
@@ -465,7 +465,7 @@ export const Round1StageScreen: React.FC<Round1StageScreenProps> = ({
             ) : !isTimeOut && timeLeft === TIME_LIMIT ? (
               <button
                 onClick={startTimer}
-                className="px-3.5 md:px-4 py-2 md:py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs md:text-sm flex items-center gap-1.5 shadow-lg shadow-emerald-950/50 border border-emerald-300 transition active:scale-95 animate-pulse"
+                className="px-3.5 md:px-4 py-2 md:py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs md:text-sm flex items-center gap-1.5 shadow-lg shadow-emerald-950/20 dark:shadow-emerald-950/50 border border-emerald-300 transition active:scale-95 animate-pulse"
                 title="Bắt đầu đếm ngược 10 giây (Phím Space)"
               >
                 <Play className="w-4 h-4 fill-current" />
@@ -474,7 +474,7 @@ export const Round1StageScreen: React.FC<Round1StageScreenProps> = ({
             ) : !isTimeOut && timeLeft > 0 ? (
               <button
                 onClick={startTimer}
-                className="px-3.5 md:px-4 py-2 md:py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs md:text-sm flex items-center gap-1.5 shadow-lg shadow-cyan-950/50 transition active:scale-95"
+                className="px-3.5 md:px-4 py-2 md:py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs md:text-sm flex items-center gap-1.5 shadow-lg shadow-cyan-950/20 dark:shadow-cyan-950/50 transition active:scale-95"
                 title="Tiếp tục đếm giờ (Phím Space)"
               >
                 <Play className="w-4 h-4 fill-current" />
@@ -484,7 +484,7 @@ export const Round1StageScreen: React.FC<Round1StageScreenProps> = ({
 
             <button
               onClick={resetCurrentTimer}
-              className="p-2 md:p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-400 hover:text-cyan-300 hover:border-slate-500 transition"
+              className="p-2 md:p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-cyan-700 dark:hover:text-cyan-300 hover:border-cyan-400 transition shadow-sm"
               title="Đặt lại 10 giây (Phím R)"
             >
               <RotateCcw className="w-4 h-4 md:w-5 md:h-5" />
@@ -497,13 +497,13 @@ export const Round1StageScreen: React.FC<Round1StageScreenProps> = ({
       <div className="relative z-10 max-w-full w-full mx-auto my-auto py-3 md:py-6">
         {/* Status banner when time out */}
         {isTimeOut && (
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl bg-rose-600/90 text-white font-black text-sm uppercase tracking-wider mb-4 animate-bounce">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl bg-rose-600 text-white font-black text-sm uppercase tracking-wider mb-4 animate-bounce shadow-md">
             HẾT THỜI GIAN TRẢ LỜI - THÍ SINH GIƠ BẢNG
           </div>
         )}
 
-        <div className="p-6 md:p-8 lg:p-12 rounded-3xl bg-slate-900/95 border-2 border-cyan-500/30 shadow-2xl mb-6">
-          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold text-white leading-snug">
+        <div className="p-6 md:p-8 lg:p-12 rounded-3xl bg-white dark:bg-slate-900/95 border-2 border-cyan-400/60 dark:border-cyan-500/30 shadow-xl dark:shadow-2xl mb-6">
+          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white leading-snug">
             {currentQ.question}
           </h2>
           {currentQ.imageUrl && (
@@ -511,7 +511,7 @@ export const Round1StageScreen: React.FC<Round1StageScreenProps> = ({
               <img
                 src={currentQ.imageUrl}
                 alt="Minh họa câu hỏi"
-                className="object-contain max-h-48 rounded-xl border border-slate-700"
+                className="object-contain max-h-48 rounded-xl border border-slate-300 dark:border-slate-700"
               />
             </div>
           )}
@@ -523,13 +523,13 @@ export const Round1StageScreen: React.FC<Round1StageScreenProps> = ({
             const isThisCorrect = opt.key === currentQ.correctAnswer;
             const isRevealed = isAnswerRevealed;
 
-            let cardStyle = 'bg-slate-900/90 border-slate-700/80 text-slate-100 hover:border-slate-500';
+            let cardStyle = 'bg-white dark:bg-slate-900/90 border-slate-300 dark:border-slate-700/80 text-slate-900 dark:text-slate-100 hover:border-cyan-500 shadow-sm';
 
             if (isRevealed) {
               if (isThisCorrect) {
-                cardStyle = 'bg-emerald-950 border-2 border-emerald-400 text-emerald-100 shadow-2xl shadow-emerald-900/50 scale-[1.02] ring-2 ring-emerald-500/50';
+                cardStyle = 'bg-emerald-50 dark:bg-emerald-950 border-2 border-emerald-500 dark:border-emerald-400 text-emerald-950 dark:text-emerald-100 shadow-2xl scale-[1.02] ring-2 ring-emerald-500/50';
               } else {
-                cardStyle = 'bg-slate-950/60 border-slate-800 text-slate-500 opacity-60';
+                cardStyle = 'bg-slate-100/70 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500 opacity-60';
               }
             }
 
@@ -541,8 +541,8 @@ export const Round1StageScreen: React.FC<Round1StageScreenProps> = ({
                 <div
                   className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center font-black text-xl md:text-2xl flex-shrink-0 shadow-md ${
                     isRevealed && isThisCorrect
-                      ? 'bg-emerald-500 text-slate-950 font-black'
-                      : 'bg-slate-800 border border-slate-600 text-cyan-300'
+                      ? 'bg-emerald-500 text-white dark:text-slate-950 font-black'
+                      : 'bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-cyan-800 dark:text-cyan-300'
                   }`}
                 >
                   {opt.key}
@@ -562,15 +562,15 @@ export const Round1StageScreen: React.FC<Round1StageScreenProps> = ({
           <div
             className={`p-3 md:p-4 rounded-2xl border flex items-center justify-center gap-4 text-lg md:text-2xl font-black ${
               questionVerdict === 'correct'
-                ? 'bg-emerald-950/90 border-emerald-500/80 text-emerald-300 shadow-xl'
+                ? 'bg-emerald-100 dark:bg-emerald-950/90 border-emerald-400 dark:border-emerald-500/80 text-emerald-900 dark:text-emerald-300 shadow-xl'
                 : questionVerdict === 'wrong'
-                ? 'bg-rose-950/90 border-rose-500/80 text-rose-300 shadow-xl'
-                : 'bg-cyan-950/80 border-cyan-500/60 text-cyan-300'
+                ? 'bg-rose-100 dark:bg-rose-950/90 border-rose-400 dark:border-rose-500/80 text-rose-900 dark:text-rose-300 shadow-xl'
+                : 'bg-cyan-100 dark:bg-cyan-950/80 border-cyan-400 dark:border-cyan-500/60 text-cyan-900 dark:text-cyan-300'
             }`}
           >
             <span>ĐÁP ÁN ĐÚNG: {currentQ.correctAnswer}</span>
             {questionVerdict === 'correct' && (
-              <span className="px-3 py-1 rounded-xl bg-emerald-500 text-slate-950 text-base md:text-lg">
+              <span className="px-3 py-1 rounded-xl bg-emerald-500 text-white dark:text-slate-950 text-base md:text-lg">
                 +05 ĐIỂM
               </span>
             )}
@@ -584,7 +584,7 @@ export const Round1StageScreen: React.FC<Round1StageScreenProps> = ({
       )}
 
       {/* Bottom Stage Control Bar for Program Operator */}
-      <div className="relative z-10 w-full max-w-6xl mx-auto pt-4 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
+      <div className="relative z-10 w-full max-w-6xl mx-auto pt-4 border-t border-slate-200 dark:border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
         {/* Left: Reveal Button */}
         <div className="flex items-center gap-2">
           <button
@@ -593,7 +593,7 @@ export const Round1StageScreen: React.FC<Round1StageScreenProps> = ({
             disabled={isAnswerRevealed}
             className={`px-5 py-3 rounded-2xl font-black text-sm md:text-base flex items-center gap-2 transition shadow-lg ${
               isAnswerRevealed
-                ? 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
+                ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-300 dark:border-slate-700 cursor-not-allowed'
                 : 'bg-cyan-500 hover:bg-cyan-400 text-slate-950 border border-cyan-300 active:scale-95'
             }`}
             title="Hiện đáp án đúng (Phím Enter)"
@@ -608,10 +608,10 @@ export const Round1StageScreen: React.FC<Round1StageScreenProps> = ({
           <button
             id="verdict-correct-btn"
             onClick={handleMarkCorrect}
-            className={`px-6 py-3 rounded-2xl font-black text-base md:text-lg flex items-center gap-2 border-2 transition active:scale-95 shadow-xl ${
+            className={`px-6 py-3 rounded-2xl font-black text-base md:text-lg flex items-center gap-2 border-2 transition active:scale-95 shadow-lg ${
               questionVerdict === 'correct'
-                ? 'bg-emerald-500 text-slate-950 border-emerald-300 scale-105 shadow-emerald-950/60'
-                : 'bg-emerald-950/70 hover:bg-emerald-900 border-emerald-500 text-emerald-300'
+                ? 'bg-emerald-500 text-white dark:text-slate-950 border-emerald-400 scale-105 shadow-emerald-950/40'
+                : 'bg-emerald-100 dark:bg-emerald-950/70 hover:bg-emerald-200 dark:hover:bg-emerald-900 border-emerald-400 dark:border-emerald-500 text-emerald-900 dark:text-emerald-300'
             }`}
           >
             <Check className="w-6 h-6 stroke-[3]" />
@@ -621,10 +621,10 @@ export const Round1StageScreen: React.FC<Round1StageScreenProps> = ({
           <button
             id="verdict-wrong-btn"
             onClick={handleMarkWrong}
-            className={`px-6 py-3 rounded-2xl font-black text-base md:text-lg flex items-center gap-2 border-2 transition active:scale-95 shadow-xl ${
+            className={`px-6 py-3 rounded-2xl font-black text-base md:text-lg flex items-center gap-2 border-2 transition active:scale-95 shadow-lg ${
               questionVerdict === 'wrong'
-                ? 'bg-rose-600 text-white border-rose-400 scale-105 shadow-rose-950/60'
-                : 'bg-rose-950/70 hover:bg-rose-900 border-rose-500 text-rose-300'
+                ? 'bg-rose-600 text-white border-rose-400 scale-105 shadow-rose-950/40'
+                : 'bg-rose-100 dark:bg-rose-950/70 hover:bg-rose-200 dark:hover:bg-rose-900 border-rose-400 dark:border-rose-500 text-rose-900 dark:text-rose-300'
             }`}
           >
             <XIcon className="w-6 h-6 stroke-[3]" />
@@ -637,7 +637,7 @@ export const Round1StageScreen: React.FC<Round1StageScreenProps> = ({
           <button
             id="next-question-btn"
             onClick={handleNextQuestion}
-            className="px-6 py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-base md:text-lg flex items-center gap-2 shadow-xl shadow-blue-950/50 transition active:scale-95"
+            className="px-6 py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-base md:text-lg flex items-center gap-2 shadow-xl shadow-blue-950/30 dark:shadow-blue-950/50 transition active:scale-95"
             title="Chuyển sang câu hỏi kế tiếp (Phím →)"
           >
             <span>

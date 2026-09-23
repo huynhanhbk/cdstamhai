@@ -36,6 +36,28 @@ export default function App() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
+  // Theme state: 'light' | 'dark'
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    const saved = localStorage.getItem('tamhai_theme');
+    if (saved === 'light' || saved === 'dark') return saved;
+    return 'dark';
+  });
+
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.add('light');
+    }
+    localStorage.setItem('tamhai_theme', theme);
+  }, [theme]);
+
+  const handleToggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
   // Modals
   const [isRound1RulesOpen, setIsRound1RulesOpen] = useState(false);
   const [isRound2RulesOpen, setIsRound2RulesOpen] = useState(false);
@@ -283,7 +305,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-cyan-500 selection:text-slate-950 font-sans">
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col selection:bg-cyan-500 selection:text-slate-950 font-sans transition-colors duration-200">
       {/* Universal Stage Top Navigation Bar */}
       <Navbar
         settings={settings}
@@ -291,13 +313,19 @@ export default function App() {
         syncStatus={syncStatus}
         soundEnabled={soundEnabled}
         isFullscreen={isFullscreen}
+        isAdminLoggedIn={currentView === 'admin'}
+        theme={theme}
+        onToggleTheme={handleToggleTheme}
         onNavigateHome={() => setCurrentView('home')}
         onNavigateRound1={() => setCurrentView('round1_select')}
         onNavigateRound2={() => setCurrentView('round2_select')}
+        onOpenAdmin={() => setCurrentView('admin')}
         onOpenAdminLogin={() => setIsAdminLoginOpen(true)}
+        onLogoutAdmin={() => setCurrentView('home')}
         onToggleSound={() => setSoundEnabled((prev) => !prev)}
         onToggleFullscreen={handleToggleFullscreen}
         onOpenKeyboardHelp={() => setIsKeyboardHelpOpen(true)}
+        onManualSync={handleManualSync}
       />
 
       {/* Main View Router */}

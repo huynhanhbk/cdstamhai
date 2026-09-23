@@ -148,35 +148,35 @@ export const RandomDrawModal: React.FC<RandomDrawModalProps> = ({
   const unplayedCount = items.filter((i) => i.status !== 'completed').length;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 dark:bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
       <div
         id="random-draw-modal"
-        className={`relative w-full max-w-2xl bg-slate-950 border-2 rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden ${
+        className={`relative w-full max-w-2xl bg-white dark:bg-slate-950 border-2 rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden transition-colors duration-200 ${
           isCyan
-            ? 'border-cyan-500/50 shadow-cyan-950/80'
-            : 'border-indigo-500/50 shadow-indigo-950/80'
+            ? 'border-cyan-400 dark:border-cyan-500/50 shadow-cyan-950/20 dark:shadow-cyan-950/80'
+            : 'border-indigo-400 dark:border-indigo-500/50 shadow-indigo-950/20 dark:shadow-indigo-950/80'
         }`}
       >
         {/* Glow ambient background */}
         <div
-          className={`absolute -top-24 -left-24 w-72 h-72 rounded-full blur-3xl pointer-events-none opacity-25 ${
+          className={`absolute -top-24 -left-24 w-72 h-72 rounded-full blur-3xl pointer-events-none opacity-15 dark:opacity-25 ${
             isCyan ? 'bg-cyan-500' : 'bg-indigo-500'
           }`}
         />
         <div
-          className={`absolute -bottom-24 -right-24 w-72 h-72 rounded-full blur-3xl pointer-events-none opacity-20 ${
+          className={`absolute -bottom-24 -right-24 w-72 h-72 rounded-full blur-3xl pointer-events-none opacity-15 dark:opacity-20 ${
             isCyan ? 'bg-blue-500' : 'bg-purple-500'
           }`}
         />
 
         {/* Modal Top Bar */}
-        <div className="relative z-10 flex items-center justify-between pb-4 border-b border-slate-800">
+        <div className="relative z-10 flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
           <div className="flex items-center gap-3">
             <div
-              className={`w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg ${
+              className={`w-10 h-10 rounded-2xl flex items-center justify-center shadow-md ${
                 isCyan
-                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
-                  : 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40'
+                  ? 'bg-cyan-100 dark:bg-cyan-500/20 text-cyan-800 dark:text-cyan-300 border border-cyan-300 dark:border-cyan-500/40'
+                  : 'bg-indigo-100 dark:bg-indigo-500/20 text-indigo-800 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-500/40'
               }`}
             >
               <Dices className="w-5 h-5 animate-pulse" />
@@ -184,12 +184,12 @@ export const RandomDrawModal: React.FC<RandomDrawModalProps> = ({
             <div>
               <div
                 className={`text-[11px] font-black tracking-widest uppercase ${
-                  isCyan ? 'text-cyan-400' : 'text-indigo-400'
+                  isCyan ? 'text-cyan-700 dark:text-cyan-400' : 'text-indigo-700 dark:text-indigo-400'
                 }`}
               >
                 {subtitle}
               </div>
-              <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+              <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
                 {title}
               </h2>
             </div>
@@ -198,7 +198,7 @@ export const RandomDrawModal: React.FC<RandomDrawModalProps> = ({
           <button
             onClick={onClose}
             disabled={isSpinning}
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition disabled:opacity-30"
+            className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition disabled:opacity-30"
             title="Đóng (Esc)"
           >
             <X className="w-6 h-6" />
@@ -206,16 +206,16 @@ export const RandomDrawModal: React.FC<RandomDrawModalProps> = ({
         </div>
 
         {/* Filter settings & stats */}
-        <div className="relative z-10 flex flex-wrap items-center justify-between gap-2 my-4 px-3 py-2 rounded-2xl bg-slate-900/80 border border-slate-800 text-xs">
-          <div className="flex items-center gap-2 text-slate-300">
-            <Filter className="w-4 h-4 text-slate-400" />
+        <div className="relative z-10 flex flex-wrap items-center justify-between gap-2 my-4 px-3 py-2 rounded-2xl bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-xs">
+          <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 font-medium">
+            <Filter className="w-4 h-4 text-slate-500 dark:text-slate-400" />
             <span>
               Tổng số:{' '}
-              <strong className="text-white font-bold">{items.length}</strong> |
+              <strong className="text-slate-900 dark:text-white font-bold">{items.length}</strong> |
               Chưa thi:{' '}
               <strong
                 className={
-                  unplayedCount > 0 ? 'text-emerald-400' : 'text-rose-400'
+                  unplayedCount > 0 ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-rose-600 dark:text-rose-400 font-bold'
                 }
               >
                 {unplayedCount}
@@ -223,13 +223,13 @@ export const RandomDrawModal: React.FC<RandomDrawModalProps> = ({
             </span>
           </div>
 
-          <label className="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white select-none">
+          <label className="flex items-center gap-2 cursor-pointer text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white select-none font-medium">
             <input
               type="checkbox"
               checked={onlyUnplayed}
               disabled={isSpinning || unplayedCount === 0}
               onChange={(e) => setOnlyUnplayed(e.target.checked)}
-              className="rounded border-slate-700 bg-slate-800 text-cyan-500 focus:ring-0 w-4 h-4"
+              className="rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-cyan-600 dark:text-cyan-500 focus:ring-0 w-4 h-4"
             />
             <span>Chỉ bốc thăm phần chưa thi</span>
           </label>
@@ -241,11 +241,11 @@ export const RandomDrawModal: React.FC<RandomDrawModalProps> = ({
             className={`w-full max-w-md p-6 sm:p-8 rounded-3xl border-3 flex flex-col items-center justify-center text-center transition-all duration-300 ${
               winnerItem
                 ? isCyan
-                  ? 'bg-gradient-to-b from-cyan-950/80 to-slate-950 border-cyan-400 shadow-2xl shadow-cyan-500/30 scale-105'
-                  : 'bg-gradient-to-b from-indigo-950/80 to-slate-950 border-indigo-400 shadow-2xl shadow-indigo-500/30 scale-105'
+                  ? 'bg-gradient-to-b from-cyan-50 to-white dark:from-cyan-950/80 dark:to-slate-950 border-cyan-400 shadow-2xl shadow-cyan-500/20 dark:shadow-cyan-500/30 scale-105'
+                  : 'bg-gradient-to-b from-indigo-50 to-white dark:from-indigo-950/80 dark:to-slate-950 border-indigo-400 shadow-2xl shadow-indigo-500/20 dark:shadow-indigo-500/30 scale-105'
                 : isSpinning
-                ? 'bg-slate-900 border-amber-400/80 shadow-xl shadow-amber-950/40'
-                : 'bg-slate-900/90 border-slate-700 shadow-xl'
+                ? 'bg-amber-50 dark:bg-slate-900 border-amber-400 shadow-xl shadow-amber-950/20 dark:shadow-amber-950/40'
+                : 'bg-slate-50 dark:bg-slate-900/90 border-slate-200 dark:border-slate-700 shadow-md dark:shadow-xl'
             }`}
           >
             {/* Crown / Trophy icon when winner found */}
@@ -260,14 +260,14 @@ export const RandomDrawModal: React.FC<RandomDrawModalProps> = ({
 
             {/* Giant Number Badge */}
             <div
-              className={`w-24 h-24 sm:w-28 sm:h-28 rounded-3xl flex items-center justify-center text-4xl sm:text-5xl font-black mb-4 shadow-2xl transition-transform ${
+              className={`w-24 h-24 sm:w-28 sm:h-28 rounded-3xl flex items-center justify-center text-4xl sm:text-5xl font-black mb-4 shadow-xl transition-transform ${
                 winnerItem
                   ? isCyan
                     ? 'bg-cyan-500 text-slate-950 scale-110 shadow-cyan-400/50'
-                    : 'bg-indigo-500 text-white scale-110 shadow-indigo-400/50'
+                    : 'bg-indigo-600 text-white scale-110 shadow-indigo-400/50'
                   : isSpinning
                   ? 'bg-amber-500 text-slate-950 animate-pulse'
-                  : 'bg-slate-800 text-slate-200 border border-slate-700'
+                  : 'bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700'
               }`}
             >
               {displayItem ? displayItem.number : '?'}
@@ -277,28 +277,28 @@ export const RandomDrawModal: React.FC<RandomDrawModalProps> = ({
             <h3
               className={`text-2xl sm:text-3xl font-black tracking-tight uppercase mb-2 ${
                 winnerItem
-                  ? 'text-white'
+                  ? 'text-slate-900 dark:text-white'
                   : isSpinning
-                  ? 'text-amber-300'
-                  : 'text-slate-300'
+                  ? 'text-amber-800 dark:text-amber-300'
+                  : 'text-slate-800 dark:text-slate-300'
               }`}
             >
               {displayItem ? displayItem.title : 'SẴN SÀNG QUAY'}
             </h3>
 
             {/* Sub-status description */}
-            <div className="text-xs font-semibold text-slate-400">
+            <div className="text-xs font-semibold text-slate-600 dark:text-slate-400">
               {winnerItem ? (
-                <span className="text-emerald-400 flex items-center gap-1.5 justify-center">
+                <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 justify-center font-bold">
                   <CheckCircle2 className="w-4 h-4" />
                   Đã bốc thăm trúng! Nhấn "VÀO THI NGAY" để tiến hành.
                 </span>
               ) : isSpinning ? (
-                <span className="text-amber-400 animate-pulse">
+                <span className="text-amber-700 dark:text-amber-400 animate-pulse font-bold">
                   Đang quay số ngẫu nhiên hồi hộp...
                 </span>
               ) : candidatePool.length === 0 ? (
-                <span className="text-rose-400">
+                <span className="text-rose-600 dark:text-rose-400 font-bold">
                   Tất cả các gói/tình huống đã hoàn thành thi.
                 </span>
               ) : (
@@ -340,7 +340,7 @@ export const RandomDrawModal: React.FC<RandomDrawModalProps> = ({
               <button
                 id="redraw-btn"
                 onClick={startDraw}
-                className="w-full sm:w-auto px-5 py-3.5 rounded-2xl bg-slate-900 border border-slate-700 text-slate-300 hover:text-white hover:border-slate-500 font-bold text-sm flex items-center justify-center gap-2 transition"
+                className="w-full sm:w-auto px-5 py-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:border-slate-400 font-bold text-sm flex items-center justify-center gap-2 transition shadow-sm"
               >
                 <RotateCcw className="w-4 h-4" />
                 <span>Bốc Thăm Lại</span>

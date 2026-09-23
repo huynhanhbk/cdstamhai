@@ -27,27 +27,27 @@ const ToastItem: React.FC<{
 
   return (
     <div
-      className={`pointer-events-auto relative overflow-hidden flex items-center justify-between p-4 rounded-2xl border shadow-2xl backdrop-blur-md transition-all duration-300 animate-in fade-in slide-in-from-bottom-3 ${
+      className={`pointer-events-auto relative overflow-hidden flex items-center justify-between p-4 rounded-2xl border shadow-xl backdrop-blur-md transition-all duration-300 animate-in fade-in slide-in-from-bottom-3 ${
         toast.type === 'success'
-          ? 'bg-emerald-950/95 border-emerald-500/60 text-emerald-100 shadow-emerald-950/60'
+          ? 'bg-emerald-50 dark:bg-emerald-950/95 border-emerald-400 dark:border-emerald-500/60 text-emerald-950 dark:text-emerald-100 shadow-emerald-900/10 dark:shadow-emerald-950/60'
           : toast.type === 'error'
-          ? 'bg-rose-950/95 border-rose-500/60 text-rose-100 shadow-rose-950/60'
+          ? 'bg-rose-50 dark:bg-rose-950/95 border-rose-400 dark:border-rose-500/60 text-rose-950 dark:text-rose-100 shadow-rose-900/10 dark:shadow-rose-950/60'
           : toast.type === 'warning'
-          ? 'bg-amber-950/95 border-amber-500/60 text-amber-100 shadow-amber-950/60'
-          : 'bg-slate-900/95 border-cyan-500/60 text-cyan-100 shadow-cyan-950/60'
+          ? 'bg-amber-50 dark:bg-amber-950/95 border-amber-400 dark:border-amber-500/60 text-amber-950 dark:text-amber-100 shadow-amber-900/10 dark:shadow-amber-950/60'
+          : 'bg-cyan-50 dark:bg-slate-900/95 border-cyan-400 dark:border-cyan-500/60 text-cyan-950 dark:text-cyan-100 shadow-cyan-900/10 dark:shadow-cyan-950/60'
       }`}
     >
       <div className="flex items-center gap-3 pr-2">
-        {toast.type === 'success' && <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />}
-        {toast.type === 'error' && <AlertCircle className="w-5 h-5 text-rose-400 flex-shrink-0" />}
-        {toast.type === 'warning' && <AlertCircle className="w-5 h-5 text-amber-400 flex-shrink-0" />}
-        {toast.type === 'info' && <Info className="w-5 h-5 text-cyan-400 flex-shrink-0" />}
+        {toast.type === 'success' && <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />}
+        {toast.type === 'error' && <AlertCircle className="w-5 h-5 text-rose-600 dark:text-rose-400 flex-shrink-0" />}
+        {toast.type === 'warning' && <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0" />}
+        {toast.type === 'info' && <Info className="w-5 h-5 text-cyan-600 dark:text-cyan-400 flex-shrink-0" />}
         <span className="text-sm font-semibold leading-snug">{toast.text}</span>
       </div>
 
       <button
         onClick={() => onDismiss(toast.id)}
-        className="ml-3 p-1 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition flex-shrink-0"
+        className="ml-3 p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition flex-shrink-0"
         title="Tắt thông báo"
       >
         <X className="w-4 h-4" />
