@@ -71,7 +71,7 @@ export const Round1PackageSelect: React.FC<Round1PackageSelectProps> = ({
           </button>
           <div>
             <div className="text-xs md:text-sm font-black tracking-widest text-cyan-400 uppercase">
-              PHẦN THI 1: HIỂU BIẾT SỐ
+              PHẦN THI: HIỂU BIẾT SỐ
             </div>
             <h1 className="text-2xl md:text-4xl font-black text-white tracking-tight">
               CHỌN GÓI CÂU HỎI

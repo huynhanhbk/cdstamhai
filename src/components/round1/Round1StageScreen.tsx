@@ -272,7 +272,7 @@ export const Round1StageScreen: React.FC<Round1StageScreenProps> = ({
             <span>Quay lại danh sách gói</span>
           </button>
           <div className="text-cyan-400 text-sm font-bold tracking-widest uppercase">
-            PHẦN THI 1: HIỂU BIẾT SỐ
+            PHẦN THI: HIỂU BIẾT SỐ
           </div>
         </div>
 

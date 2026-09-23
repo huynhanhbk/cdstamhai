@@ -238,7 +238,7 @@ export const Round2StageScreen: React.FC<Round2StageScreenProps> = ({
             {situation.title}
           </div>
           <div className="hidden sm:block text-sm md:text-base font-bold text-slate-300">
-            PHẦN THI 2: XỬ LÝ TÌNH HUỐNG (TỐI ĐA 30 ĐIỂM)
+            PHẦN THI: XỬ LÝ TÌNH HUỐNG (TỐI ĐA 30 ĐIỂM)
           </div>
         </div>
 

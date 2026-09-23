@@ -61,7 +61,7 @@ export const Round2SituationSelect: React.FC<Round2SituationSelectProps> = ({
           </button>
           <div>
             <div className="text-xs md:text-sm font-black tracking-widest text-indigo-400 uppercase">
-              PHẦN THI 2: XỬ LÝ TÌNH HUỐNG
+              PHẦN THI: XỬ LÝ TÌNH HUỐNG
             </div>
             <h1 className="text-2xl md:text-4xl font-black text-white tracking-tight">
               BỐC THĂM CHỌN TÌNH HUỐNG
@@ -87,7 +87,7 @@ export const Round2SituationSelect: React.FC<Round2SituationSelectProps> = ({
             title="Reset trạng thái 14 tình huống"
           >
             <RotateCcw className="w-4 h-4" />
-            <span className="hidden sm:inline">Reset Phần 2</span>
+            <span className="hidden sm:inline">Reset Phần thi</span>
           </button>
         </div>
       </div>
@@ -157,7 +157,7 @@ export const Round2SituationSelect: React.FC<Round2SituationSelectProps> = ({
 
       {/* Stage Note */}
       <div className="relative z-10 max-w-4xl mx-auto w-full text-center text-xs md:text-sm text-slate-400 p-3 rounded-2xl bg-slate-900/60 border border-slate-800">
-        <span className="text-indigo-400 font-bold">Lưu ý máy chiếu:</span> Màn hình chỉ hiển thị số thứ tự tình huống nhằm phục vụ đại diện các đội bốc thăm ngẫu nhiên trên sân khấu. Bạn có thể nhấn trực tiếp vào ô tình huống hoặc sử dụng nút <strong className="text-indigo-300">Bốc Thăm Ngẫu Nhiên</strong>.
+        <span className="text-indigo-400 font-bold">Màn hình chỉ hiển thị số thứ tự tình huống nhằm phục vụ đại diện các đội bốc thăm ngẫu nhiên trên sân khấu. Bạn có thể nhấn trực tiếp vào ô tình huống hoặc sử dụng nút <strong className="text-indigo-300">Bốc Thăm Ngẫu Nhiên</strong>.
       </div>
 
       {/* Random Draw Modal for Round 2 */}

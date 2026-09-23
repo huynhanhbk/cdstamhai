@@ -74,7 +74,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </h1>
 
         <p className="mt-4 text-slate-300 max-w-2xl mx-auto text-sm md:text-base font-normal leading-relaxed">
-          Phần mềm điều hành sân khấu & trình chiếu chính thức • Thiết kế tối ưu hiển thị máy chiếu 16:9 • Đếm giờ & tính điểm tự động
+          Phát huy vai trò tiên phong của Ban công tác Mặt trận trong tuyên truyền, hướng dẫn công dân số, xây dựng chính quyền và xã hội số
         </p>
       </div>
 
@@ -91,7 +91,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
           <div>
             <div className="inline-block px-3.5 py-1 rounded-lg bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 text-xs font-black uppercase tracking-wider mb-4">
-              PHẦN THI 1
+              PHẦN THI
             </div>
 
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white tracking-tight">
@@ -127,7 +127,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
               onClick={onSelectRound1}
               className="flex-1 py-4 px-6 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-lg tracking-wide shadow-xl shadow-cyan-950/50 flex items-center justify-center gap-2 transition-transform active:scale-95 group-hover:scale-[1.02]"
             >
-              <span>VÀO PHẦN THI 1</span>
+              <span>VÀO PHẦN THI</span>
               <ArrowRight className="w-5 h-5 text-slate-950 font-bold" />
             </button>
 
@@ -154,7 +154,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
           <div>
             <div className="inline-block px-3.5 py-1 rounded-lg bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 text-xs font-black uppercase tracking-wider mb-4">
-              PHẦN THI 2
+              PHẦN THI
             </div>
 
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white tracking-tight">
@@ -190,7 +190,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
               onClick={onSelectRound2}
               className="flex-1 py-4 px-6 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-black text-lg tracking-wide shadow-xl shadow-indigo-950/50 flex items-center justify-center gap-2 transition-transform active:scale-95 group-hover:scale-[1.02]"
             >
-              <span>VÀO PHẦN THI 2</span>
+              <span>VÀO PHẦN THI</span>
               <ArrowRight className="w-5 h-5 font-bold" />
             </button>
 
@@ -221,7 +221,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </div>
 
         <div className="text-right">
-          <span>Hệ thống phục vụ hội trường • Máy chiếu 16:9 • Đơn vị: UBND & UBMTTQ xã Tam Hải</span>
+          <span>Đơn vị: UBND & UBMTTQ xã Tam Hải</span>
         </div>
       </div>
     </div>

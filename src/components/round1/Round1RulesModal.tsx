@@ -24,7 +24,7 @@ export const Round1RulesModal: React.FC<Round1RulesModalProps> = ({ isOpen, onCl
             THỂ LỆ CHÍNH THỨC
           </div>
           <h2 className="text-2xl md:text-3xl font-black text-white">
-            PHẦN THI 1: HIỂU BIẾT SỐ
+            PHẦN THI: HIỂU BIẾT SỐ
           </h2>
           <p className="text-cyan-400 font-bold text-lg mt-1">“AI HIỂU BIẾT SỐ HƠN”</p>
         </div>
