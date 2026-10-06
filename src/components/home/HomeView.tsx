@@ -85,7 +85,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
           <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300">
             <CheckCircle2 className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
             <span>
-              Đã thi: {round1PlayedCount}/{packages.length} gói
+              Đã thi: {round1PlayedCount}/ 10 gói
             </span>
           </div>
 
