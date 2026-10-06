@@ -64,9 +64,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
           HỘI THI
         </div>
 
-        <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tight text-slate-900 dark:text-white leading-tight uppercase drop-shadow-sm dark:drop-shadow-2xl">
-          “BAN CÔNG TÁC MẶT TRẬN <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 via-sky-600 to-indigo-600 dark:from-cyan-400 dark:via-sky-300 dark:to-indigo-400">
+        <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-slate-900 dark:text-white uppercase drop-shadow-sm dark:drop-shadow-2xl">
+          <span className="block leading-normal">
+            “BAN CÔNG TÁC MẶT TRẬN
+          </span>
+          <span className="block mt-2 sm:mt-3 text-cyan-600 dark:text-cyan-400 leading-normal">
             VỚI CHUYỂN ĐỔI SỐ”
           </span>
         </h1>
