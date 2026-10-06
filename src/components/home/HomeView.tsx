@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  Sparkles,
   HelpCircle,
   FileQuestion,
   ShieldCheck,
@@ -56,13 +55,12 @@ export const HomeView: React.FC<HomeViewProps> = ({
       <div className="absolute -bottom-32 left-1/3 w-96 h-96 bg-indigo-500/10 dark:bg-indigo-600/15 rounded-full blur-3xl pointer-events-none" />
 
       {/* Header Banner - Large for Projector Screen */}
-      <div className="relative z-10 max-w-5xl mx-auto text-center pt-2 md:pt-6">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-100 dark:bg-cyan-950/60 border border-cyan-400 dark:border-cyan-500/40 text-cyan-800 dark:text-cyan-300 text-xs md:text-sm font-bold tracking-wider uppercase mb-4 shadow-sm dark:shadow-lg dark:shadow-cyan-950/30">
-          <Sparkles className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
-          <span>{settings.organizer}</span>
-        </div>
+      <div className="relative z-10 max-w-6xl mx-auto text-center pt-2 md:pt-4">
+        <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-wide text-slate-800 dark:text-slate-100 uppercase mb-2 drop-shadow-sm">
+          ỦY BAN NHÂN DÂN VÀ ỦY BAN MTTQ VIỆT NAM XÃ TAM HẢI
+        </h2>
 
-        <div className="text-xl md:text-2xl lg:text-3xl font-extrabold tracking-widest text-amber-600 dark:text-amber-300 uppercase mb-2 drop-shadow-sm">
+        <div className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-widest text-amber-500 dark:text-amber-400 uppercase my-2 md:my-3 drop-shadow-md">
           HỘI THI
         </div>
 
@@ -73,7 +71,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </span>
         </h1>
 
-        <p className="mt-4 text-slate-600 dark:text-slate-300 max-w-2xl mx-auto text-sm md:text-base font-medium leading-relaxed">
+        <p className="mt-4 text-slate-600 dark:text-slate-300 max-w-3xl mx-auto text-sm md:text-base font-medium leading-relaxed">
           Phát huy vai trò tiên phong của Ban công tác Mặt trận trong tuyên truyền, hướng dẫn công dân số, xây dựng chính quyền và xã hội số
         </p>
       </div>
