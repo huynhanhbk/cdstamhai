@@ -1082,9 +1082,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </button>
                 <button
                   onClick={triggerTimeout}
-                  className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs font-semibold hover:border-rose-400"
+                  className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs font-semibold hover:border-amber-400"
                 >
-                  Còi hết giờ (Buzzer)
+                  Chuông hết giờ (Bell)
                 </button>
                 <button
                   onClick={triggerCorrect}

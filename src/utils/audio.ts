@@ -71,36 +71,52 @@ export function playUrgentTickSound(volume = 0.7): void {
 }
 
 /**
- * Stage buzzer when time runs out
+ * Melodious stage bell chime when time runs out (pleasant two-tone bell)
  */
 export function playTimeoutSound(volume = 0.8): void {
   const ctx = getAudioContext();
   if (!ctx) return;
 
   const now = ctx.currentTime;
-  const osc1 = ctx.createOscillator();
-  const osc2 = ctx.createOscillator();
-  const gain = ctx.createGain();
 
-  osc1.type = 'sawtooth';
-  osc1.frequency.setValueAtTime(160, now);
-  osc1.frequency.linearRampToValueAtTime(120, now + 0.9);
+  // Function to synthesize a realistic resonant bell chime
+  const playBellStrike = (baseFreq: number, startTime: number, strikeGain: number, duration: number) => {
+    // Rich harmonic and inharmonic partials for an acoustic bell/chime timbre
+    const partials = [
+      { ratio: 0.5, gain: 0.25, decay: duration * 0.8 },  // Hum tone (warmth)
+      { ratio: 1.0, gain: 1.0, decay: duration },         // Fundamental strike tone
+      { ratio: 1.5, gain: 0.45, decay: duration * 0.65 }, // Quint harmonic
+      { ratio: 2.0, gain: 0.5, decay: duration * 0.55 },  // Octave
+      { ratio: 2.76, gain: 0.25, decay: duration * 0.4 }, // Tierce / chime overtone
+      { ratio: 4.07, gain: 0.15, decay: duration * 0.25 }, // High shimmer
+    ];
 
-  osc2.type = 'square';
-  osc2.frequency.setValueAtTime(165, now);
-  osc2.frequency.linearRampToValueAtTime(125, now + 0.9);
+    partials.forEach(({ ratio, gain: partGain, decay }) => {
+      const osc = ctx.createOscillator();
+      const gainNode = ctx.createGain();
 
-  gain.gain.setValueAtTime(volume * 0.8, now);
-  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(baseFreq * ratio, startTime);
 
-  osc1.connect(gain);
-  osc2.connect(gain);
-  gain.connect(ctx.destination);
+      const peakLevel = volume * strikeGain * partGain * 0.32;
+      gainNode.gain.setValueAtTime(0.0001, startTime);
+      gainNode.gain.linearRampToValueAtTime(peakLevel, startTime + 0.008);
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, startTime + decay);
 
-  osc1.start(now);
-  osc2.start(now);
-  osc1.stop(now + 0.9);
-  osc2.stop(now + 0.9);
+      osc.connect(gainNode);
+      gainNode.connect(ctx.destination);
+
+      osc.start(startTime);
+      osc.stop(startTime + decay);
+    });
+  };
+
+  // Two-tone melodic bell chime ("Bính - Boong" / "Ding - Dong")
+  // First strike: High chime (A5 = 880 Hz)
+  playBellStrike(880, now, 0.9, 1.2);
+
+  // Second strike: Resonant warm chime (E5 = 659.25 Hz)
+  playBellStrike(659.25, now + 0.32, 1.0, 1.8);
 }
 
 /**
