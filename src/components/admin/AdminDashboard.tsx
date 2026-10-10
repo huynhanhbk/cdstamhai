@@ -28,6 +28,7 @@ import {
   Search,
   Trophy,
   UserPlus,
+  Gift,
 } from 'lucide-react';
 import { AppSettings, QuizPackage, QuizQuestion, Situation, SyncStatus, Team } from '../../types/competition';
 import { StorageService } from '../../services/storageService';
@@ -72,12 +73,49 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onClose,
   onManualSync,
 }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'packages' | 'situations' | 'teams' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'main_packages' | 'audience_packages' | 'situations' | 'settings'>('main_packages');
   const { triggerTick, triggerUrgentTick, triggerTimeout, triggerCorrect, triggerWrong, triggerStart } = useSound(true);
 
-  // Selected package for question editing
-  const [selectedPkgId, setSelectedPkgId] = useState<string>(packages[0]?.id || '');
-  const currentEditingPkg = packages.find((p) => p.id === selectedPkgId) || packages[0];
+  // Filter 10 main packages (strictly <= 10 and not audience)
+  const teamPackages = packages
+    .filter(
+      (p) =>
+        p.number <= 10 &&
+        !p.isAudience &&
+        !(p.title || '').toLowerCase().includes('khán giả') &&
+        !(p.title || '').toUpperCase().includes('CÂU HỎI DÀNH CHO KHÁN GIẢ') &&
+        (p.title || '').toUpperCase() !== 'GÓI SỐ 12'
+    )
+    .sort((a, b) => a.number - b.number);
+
+  // Filter 3 audience packages (strictly Khán giả 1, Khán giả 2, Khán giả 3)
+  const audiencePackages = packages
+    .filter(
+      (p) =>
+        (p.id === 'pkg-11' ||
+          p.id === 'pkg-12' ||
+          p.id === 'pkg-13' ||
+          ((p.isAudience || p.number >= 11) && (p.title || '').toLowerCase().includes('khán giả'))) &&
+        !(p.title || '').toUpperCase().includes('CÂU HỎI DÀNH CHO KHÁN GIẢ') &&
+        !(p.title || '').toUpperCase().includes('GÓI SỐ 12') &&
+        p.id !== 'pkg-audience'
+    )
+    .sort((a, b) => a.number - b.number)
+    .slice(0, 3);
+
+  // Selected package for main questions (packages 1-10)
+  const [selectedMainPkgId, setSelectedMainPkgId] = useState<string>(teamPackages[0]?.id || 'pkg-1');
+  // Selected package for audience questions (Khán giả 1, 2, 3)
+  const [selectedAudiencePkgId, setSelectedAudiencePkgId] = useState<string>(audiencePackages[0]?.id || 'pkg-11');
+
+  const currentEditingMainPkg = teamPackages.find((p) => p.id === selectedMainPkgId) || teamPackages[0];
+  const currentEditingAudiencePkg = audiencePackages.find((p) => p.id === selectedAudiencePkgId) || audiencePackages[0];
+
+  const currentActivePkg = activeTab === 'audience_packages' ? currentEditingAudiencePkg : currentEditingMainPkg;
+
+  // Specific package ID being edited
+  const [editingPkgId, setEditingPkgId] = useState<string | null>(null);
+  const [saveSuccessNotice, setSaveSuccessNotice] = useState<string | null>(null);
 
   // Question editing modal / state
   const [editingQuestion, setEditingQuestion] = useState<QuizQuestion | null>(null);
@@ -86,12 +124,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Situation editing modal / state
   const [editingSituation, setEditingSituation] = useState<Situation | null>(null);
   const [isAddingNewSituation, setIsAddingNewSituation] = useState(false);
-
-  // Team editing modal / state
-  const [editingTeam, setEditingTeam] = useState<Team | null>(null);
-  const [isAddingNewTeam, setIsAddingNewTeam] = useState(false);
-  const [teamSearchQuery, setTeamSearchQuery] = useState('');
-  const [teamToDelete, setTeamToDelete] = useState<Team | null>(null);
 
   // New admin password state
   const [newPassword, setNewPassword] = useState('');
@@ -111,45 +143,72 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [fbTestResult, setFbTestResult] = useState<{ success: boolean; message: string } | null>(null);
   const [showFbGuide, setShowFbGuide] = useState(true);
 
-  // Save new or edited question into current package
+  // Save new or edited question into current active package
   const handleSaveQuestion = (q: QuizQuestion) => {
-    if (!currentEditingPkg) return;
+    const targetPkgId =
+      editingPkgId ||
+      (activeTab === 'audience_packages' ? selectedAudiencePkgId : selectedMainPkgId) ||
+      currentActivePkg?.id;
+    if (!targetPkgId) return;
+
+    const targetPkg = packages.find((p) => p.id === targetPkgId);
+    if (!targetPkg) return;
 
     let updatedQuestions: QuizQuestion[];
     if (isAddingNewQuestion) {
-      updatedQuestions = [...currentEditingPkg.questions, { ...q, id: `q-${Date.now()}`, order: currentEditingPkg.questions.length + 1 }];
+      updatedQuestions = [
+        ...targetPkg.questions,
+        { ...q, id: `q-${Date.now()}`, order: targetPkg.questions.length + 1 },
+      ];
     } else {
-      updatedQuestions = currentEditingPkg.questions.map((item) => (item.id === q.id ? q : item));
+      updatedQuestions = targetPkg.questions.map((item) => (item.id === q.id ? q : item));
     }
 
     const updatedPkgs = packages.map((pkg) =>
-      pkg.id === currentEditingPkg.id ? { ...pkg, questions: updatedQuestions } : pkg
+      pkg.id === targetPkgId ? { ...pkg, questions: updatedQuestions } : pkg
     );
 
     onUpdatePackages(updatedPkgs);
     StorageService.savePackages(updatedPkgs, true);
     setEditingQuestion(null);
     setIsAddingNewQuestion(false);
+    setEditingPkgId(null);
+    setSaveSuccessNotice(`Đã lưu câu hỏi thành công vào ${targetPkg.title}! Dữ liệu đã được cập nhật an toàn.`);
+    setTimeout(() => setSaveSuccessNotice(null), 3500);
   };
 
   // Delete question from package
-  const handleDeleteQuestion = (qId: string) => {
-    if (!currentEditingPkg) return;
+  const handleDeleteQuestion = (qId: string, pkgId?: string) => {
+    const targetPkgId =
+      pkgId ||
+      editingPkgId ||
+      (activeTab === 'audience_packages' ? selectedAudiencePkgId : selectedMainPkgId) ||
+      currentActivePkg?.id;
+    if (!targetPkgId) return;
     if (!confirm('Bạn có chắc chắn muốn xóa câu hỏi này?')) return;
 
-    const updatedQuestions = currentEditingPkg.questions.filter((q) => q.id !== qId);
+    const targetPkg = packages.find((p) => p.id === targetPkgId);
+    if (!targetPkg) return;
+
+    const updatedQuestions = targetPkg.questions.filter((q) => q.id !== qId);
     const updatedPkgs = packages.map((pkg) =>
-      pkg.id === currentEditingPkg.id ? { ...pkg, questions: updatedQuestions } : pkg
+      pkg.id === targetPkgId ? { ...pkg, questions: updatedQuestions } : pkg
     );
     onUpdatePackages(updatedPkgs);
     StorageService.savePackages(updatedPkgs, true);
+    setSaveSuccessNotice(`Đã xóa câu hỏi khỏi ${targetPkg.title}!`);
+    setTimeout(() => setSaveSuccessNotice(null), 3500);
   };
 
-  // Add new package
+  // Add new package (for main packages, max 10)
   const handleAddNewPackage = () => {
-    const nextNum = packages.length + 1;
+    if (teamPackages.length >= 10) {
+      alert('Đã đủ 10 gói câu hỏi chính cho 10 đội thi (Gói 1 đến Gói 10).');
+      return;
+    }
+    const nextNum = teamPackages.length + 1;
     const newPkg: QuizPackage = {
-      id: `pkg-${Date.now()}`,
+      id: `pkg-${nextNum}`,
       number: nextNum,
       title: `GÓI SỐ ${nextNum}`,
       status: 'unplayed',
@@ -158,20 +217,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     const updated = [...packages, newPkg];
     onUpdatePackages(updated);
     StorageService.savePackages(updated, true);
-    setSelectedPkgId(newPkg.id);
+    setSelectedMainPkgId(newPkg.id);
   };
 
   // Delete package
   const handleDeletePackage = (pkgId: string) => {
-    if (packages.length <= 1) {
-      alert('Không thể xóa hết tất cả các gói câu hỏi.');
-      return;
-    }
     if (!confirm('Bạn có chắc chắn muốn xóa gói câu hỏi này?')) return;
     const updated = packages.filter((p) => p.id !== pkgId);
     onUpdatePackages(updated);
     StorageService.savePackages(updated, true);
-    setSelectedPkgId(updated[0]?.id || '');
+    if (activeTab === 'audience_packages') {
+      setSelectedAudiencePkgId(audiencePackages.find((p) => p.id !== pkgId)?.id || '');
+    } else {
+      setSelectedMainPkgId(teamPackages.find((p) => p.id !== pkgId)?.id || '');
+    }
   };
 
   // Save situation
@@ -206,58 +265,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     const updated = situations.filter((s) => s.id !== sitId);
     onUpdateSituations(updated);
     StorageService.saveSituations(updated, true);
-  };
-
-  // Save team (Add / Edit)
-  const handleSaveTeam = (teamData: Team) => {
-    let updated: Team[];
-    const r1 = Number(teamData.round1Score) || 0;
-    const r2 = Number(teamData.round2Score) || 0;
-    const sanitizedTeam: Team = {
-      ...teamData,
-      name: teamData.name.trim() || 'Đội thi mới',
-      code: teamData.code.trim().toUpperCase() || `T${teams.length + 1}`,
-      unit: teamData.unit.trim() || 'UBMTTQ xã Tam Hải',
-      members: teamData.members.trim() || '03 thành viên',
-      round1Score: r1,
-      round2Score: r2,
-      totalScore: r1 + r2,
-    };
-
-    if (isAddingNewTeam) {
-      const newTeam: Team = {
-        ...sanitizedTeam,
-        id: sanitizedTeam.id || `team-${Date.now()}`,
-      };
-      updated = [...teams, newTeam];
-    } else {
-      updated = teams.map((t) => (t.id === sanitizedTeam.id ? sanitizedTeam : t));
-    }
-    onUpdateTeams(updated);
-    StorageService.saveTeams(updated, true);
-    setEditingTeam(null);
-    setIsAddingNewTeam(false);
-  };
-
-  // Delete team
-  const handleDeleteTeam = (teamId: string) => {
-    const updated = teams.filter((t) => t.id !== teamId);
-    onUpdateTeams(updated);
-    StorageService.deleteTeam(teamId, true);
-    setTeamToDelete(null);
-  };
-
-  // Reset team scores
-  const handleResetTeamScores = () => {
-    if (!confirm('Bạn có chắc chắn muốn đặt lại điểm số của tất cả các đội thi về 0?')) return;
-    const updated = teams.map((t) => ({
-      ...t,
-      round1Score: 0,
-      round2Score: 0,
-      totalScore: 0,
-    }));
-    onUpdateTeams(updated);
-    StorageService.saveTeams(updated, true);
   };
 
   // Change custom password
@@ -384,193 +391,111 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
         </div>
 
+        {/* Success Notification Alert */}
+        {saveSuccessNotice && (
+          <div className="mt-4 p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-300 dark:border-emerald-500/50 flex items-center justify-between gap-3 text-emerald-800 dark:text-emerald-200 text-xs md:text-sm font-bold shadow-sm transition-all animate-in fade-in">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+              <span>{saveSuccessNotice}</span>
+            </div>
+            <button
+              onClick={() => setSaveSuccessNotice(null)}
+              className="text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-white p-1"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
         {/* Navigation Tabs */}
         <div className="flex items-center gap-2 overflow-x-auto py-4 border-b border-slate-300 dark:border-slate-800">
           <button
-            onClick={() => setActiveTab('overview')}
-            className={`px-4 py-2 rounded-xl text-xs md:text-sm font-bold flex items-center gap-2 transition whitespace-nowrap ${
-              activeTab === 'overview'
-                ? 'bg-cyan-500 text-slate-950 font-black shadow-lg shadow-cyan-950/20 dark:shadow-cyan-950/40'
-                : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-transparent hover:bg-slate-50 dark:hover:bg-slate-850'
-            }`}
-          >
-            <LayoutDashboard className="w-4 h-4" />
-            <span>Tổng Quan & Trạng Thái</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('packages')}
-            className={`px-4 py-2 rounded-xl text-xs md:text-sm font-bold flex items-center gap-2 transition whitespace-nowrap ${
-              activeTab === 'packages'
+            onClick={() => setActiveTab('main_packages')}
+            className={`px-4 py-2.5 rounded-xl text-xs md:text-sm font-bold flex items-center gap-2 transition whitespace-nowrap ${
+              activeTab === 'main_packages'
                 ? 'bg-cyan-500 text-slate-950 font-black shadow-lg shadow-cyan-950/20 dark:shadow-cyan-950/40'
                 : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-transparent hover:bg-slate-50 dark:hover:bg-slate-850'
             }`}
           >
             <HelpCircle className="w-4 h-4" />
-            <span>Quản Lý 10 Gói Câu Hỏi ({packages.length})</span>
+            <span>1. Quản lý gói câu hỏi chính ({teamPackages.length} gói)</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('audience_packages')}
+            className={`px-4 py-2.5 rounded-xl text-xs md:text-sm font-bold flex items-center gap-2 transition whitespace-nowrap ${
+              activeTab === 'audience_packages'
+                ? 'bg-amber-500 text-slate-950 font-black shadow-lg shadow-amber-950/20 dark:shadow-amber-950/40'
+                : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-transparent hover:bg-slate-50 dark:hover:bg-slate-850'
+            }`}
+          >
+            <Gift className="w-4 h-4" />
+            <span>2. Quản lý gói câu hỏi cho khán giả ({audiencePackages.length} gói)</span>
           </button>
 
           <button
             onClick={() => setActiveTab('situations')}
-            className={`px-4 py-2 rounded-xl text-xs md:text-sm font-bold flex items-center gap-2 transition whitespace-nowrap ${
+            className={`px-4 py-2.5 rounded-xl text-xs md:text-sm font-bold flex items-center gap-2 transition whitespace-nowrap ${
               activeTab === 'situations'
-                ? 'bg-cyan-500 text-slate-950 font-black shadow-lg shadow-cyan-950/20 dark:shadow-cyan-950/40'
+                ? 'bg-indigo-600 text-white font-black shadow-lg shadow-indigo-950/20 dark:shadow-indigo-950/40'
                 : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-transparent hover:bg-slate-50 dark:hover:bg-slate-850'
             }`}
           >
             <FileQuestion className="w-4 h-4" />
-            <span>Quản Lý 14 Tình Huống ({situations.length})</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('teams')}
-            className={`px-4 py-2 rounded-xl text-xs md:text-sm font-bold flex items-center gap-2 transition whitespace-nowrap ${
-              activeTab === 'teams'
-                ? 'bg-cyan-500 text-slate-950 font-black shadow-lg shadow-cyan-950/20 dark:shadow-cyan-950/40'
-                : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-transparent hover:bg-slate-50 dark:hover:bg-slate-850'
-            }`}
-          >
-            <Users className="w-4 h-4" />
-            <span>Đội Thi & Bảng Điểm ({teams.length})</span>
+            <span>3. Quản lý tình huống ({situations.length} tình huống)</span>
           </button>
 
           <button
             onClick={() => setActiveTab('settings')}
-            className={`px-4 py-2 rounded-xl text-xs md:text-sm font-bold flex items-center gap-2 transition whitespace-nowrap ${
+            className={`px-4 py-2.5 rounded-xl text-xs md:text-sm font-bold flex items-center gap-2 transition whitespace-nowrap ${
               activeTab === 'settings'
-                ? 'bg-cyan-500 text-slate-950 font-black shadow-lg shadow-cyan-950/20 dark:shadow-cyan-950/40'
+                ? 'bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-950 font-black shadow-md'
                 : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-transparent hover:bg-slate-50 dark:hover:bg-slate-850'
             }`}
           >
             <Settings className="w-4 h-4" />
-            <span>Cài Đặt, Âm Thanh & Cloud</span>
+            <span>Cài Đặt & Hệ Thống</span>
           </button>
         </div>
 
         {/* ============================================================ */}
-        {/* TAB 1: OVERVIEW & SYSTEM STATUS */}
+        {/* TAB 1: MAIN PACKAGES (10 PACKAGES FOR TEAMS) */}
         {/* ============================================================ */}
-        {activeTab === 'overview' && (
+        {activeTab === 'main_packages' && (
           <div className="py-6 space-y-6">
-            {/* Metric summary cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 shadow-sm">
-                <div className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Gói câu hỏi (Phần 1)</div>
-                <div className="text-3xl font-black text-cyan-600 dark:text-cyan-400 mt-2">{packages.length} Gói</div>
-                <div className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-                  Đã thi: <span className="text-emerald-600 dark:text-emerald-400 font-bold">{packages.filter((p) => p.status === 'completed').length}</span> | Chưa thi: {packages.filter((p) => p.status === 'unplayed').length}
-                </div>
+            {/* Header Description */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-4 rounded-2xl bg-cyan-50 dark:bg-cyan-950/30 border border-cyan-200 dark:border-cyan-500/30">
+              <div>
+                <h3 className="text-base font-black text-cyan-900 dark:text-cyan-200 uppercase tracking-wide">
+                  Quản Lý Gói Câu Hỏi Chính (10 Gói Đội Thi)
+                </h3>
+                <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
+                  Phần thi "Hiểu biết số" • Mỗi gói gồm 04 câu hỏi trắc nghiệm (max 20đ) • Bốc thăm ngẫu nhiên cho 10 đội thi
+                </p>
               </div>
-
-              <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 shadow-sm">
-                <div className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Tình huống (Phần 2)</div>
-                <div className="text-3xl font-black text-indigo-600 dark:text-indigo-400 mt-2">{situations.length} Tình huống</div>
-                <div className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-                  Đã thi: <span className="text-emerald-600 dark:text-emerald-400 font-bold">{situations.filter((s) => s.status === 'completed').length}</span> | Chưa thi: {situations.filter((s) => s.status === 'unplayed').length}
-                </div>
-              </div>
-
-              <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 shadow-sm">
-                <div className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Đội thi tham gia</div>
-                <div className="text-3xl font-black text-amber-600 dark:text-amber-400 mt-2">{teams.length} Đội</div>
-                <div className="text-xs text-slate-600 dark:text-slate-400 mt-1">Các thôn thuộc xã Tam Hải</div>
-              </div>
-
-              <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 shadow-sm">
-                <div className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Đồng bộ dữ liệu</div>
-                <div className="text-xl font-black text-emerald-600 dark:text-emerald-400 mt-2 flex items-center gap-1.5">
-                  {syncStatus.state === 'synced' ? (
-                    <>
-                      <Wifi className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                      <span>Đã đồng bộ</span>
-                    </>
-                  ) : (
-                    <>
-                      <WifiOff className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
-                      <span>Offline Cache</span>
-                    </>
-                  )}
-                </div>
-                <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-                  Lần cuối: {syncStatus.lastSyncedAt || 'Vừa xong'}
-                </div>
+              <div className="text-xs font-bold text-cyan-800 dark:text-cyan-300 bg-white dark:bg-slate-900 px-3 py-1.5 rounded-xl border border-cyan-300 dark:border-cyan-500/40 shadow-xs">
+                Tổng: {teamPackages.length} Gói
               </div>
             </div>
 
-            {/* Quick Reset Station */}
-            <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-              <div className="flex items-center gap-3">
-                <RotateCcw className="w-6 h-6 text-rose-500 dark:text-rose-400" />
-                <div>
-                  <h3 className="text-lg font-black text-slate-900 dark:text-white">Reset Trạng Thái Hội Thi</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Sử dụng khi chuẩn bị bắt đầu một lượt thi mới hoặc phiên tổng duyệt (có xác nhận chống click nhầm)
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-                <button
-                  id="admin-reset-r1-btn"
-                  onClick={onResetRound1}
-                  className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 hover:border-cyan-500/60 text-left transition shadow-xs"
-                >
-                  <div className="text-sm font-bold text-cyan-700 dark:text-cyan-300">Reset Phần thi 1</div>
-                  <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                    Đưa toàn bộ 10 gói câu hỏi về trạng thái CHƯA THI (0đ)
-                  </div>
-                </button>
-
-                <button
-                  id="admin-reset-r2-btn"
-                  onClick={onResetRound2}
-                  className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 hover:border-indigo-500/60 text-left transition shadow-xs"
-                >
-                  <div className="text-sm font-bold text-indigo-700 dark:text-indigo-300">Reset Phần thi 2</div>
-                  <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                    Đưa toàn bộ 14 tình huống về trạng thái CHƯA THI
-                  </div>
-                </button>
-
-                <button
-                  id="admin-reset-all-btn"
-                  onClick={onResetAll}
-                  className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-600/50 hover:border-rose-400 text-left transition shadow-xs"
-                >
-                  <div className="text-sm font-bold text-rose-700 dark:text-rose-300">Reset Toàn Bộ Hội Thi</div>
-                  <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                    Đưa cả 2 phần thi về ban đầu (Popup xác nhận an toàn)
-                  </div>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ============================================================ */}
-        {/* TAB 2: PACKAGES & QUESTIONS MANAGEMENT */}
-        {/* ============================================================ */}
-        {activeTab === 'packages' && (
-          <div className="py-6 space-y-6">
-            {/* Package selector bar */}
+            {/* Package selector bar: 10 main packages */}
             <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
               <div className="flex items-center gap-2 overflow-x-auto max-w-4xl py-1">
-                {packages.map((pkg) => {
-                  const isAudience = pkg.isAudience || pkg.number === 11;
-                  const hasValidCount = isAudience ? pkg.questions.length >= 14 : pkg.questions.length === 4;
+                {teamPackages.map((pkg) => {
+                  const hasValidCount = pkg.questions.length === 4;
                   return (
                     <button
                       key={pkg.id}
-                      onClick={() => setSelectedPkgId(pkg.id)}
+                      onClick={() => setSelectedMainPkgId(pkg.id)}
                       className={`px-3.5 py-1.5 rounded-xl text-xs font-bold border transition flex items-center gap-1.5 flex-shrink-0 ${
-                        currentEditingPkg?.id === pkg.id
-                          ? 'bg-cyan-500 text-slate-950 border-cyan-400 shadow'
+                        currentEditingMainPkg?.id === pkg.id
+                          ? 'bg-cyan-500 text-slate-950 border-cyan-400 shadow font-black'
                           : 'bg-slate-100 dark:bg-slate-950 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-slate-400 dark:hover:border-slate-500'
                       }`}
                     >
                       <span>{pkg.title}</span>
                       {!hasValidCount ? (
-                        <span className="w-2 h-2 rounded-full bg-amber-500" title="Chưa đủ số lượng câu hỏi!" />
+                        <span className="w-2 h-2 rounded-full bg-amber-500" title={`Hiện có ${pkg.questions.length}/4 câu hỏi`} />
                       ) : (
                         <span className="w-2 h-2 rounded-full bg-emerald-500" />
                       )}
@@ -590,25 +515,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </div>
             </div>
 
-            {/* Current package details & questions list */}
-            {currentEditingPkg && (
+            {/* Current main package details & questions list */}
+            {currentEditingMainPkg && (
               <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
                   <div>
                     <h3 className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-3">
-                      <span>{currentEditingPkg.title}</span>
-                      {currentEditingPkg.isAudience || currentEditingPkg.number === 11 ? (
-                        <span className="px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950 border border-amber-300 dark:border-amber-500/40 text-amber-800 dark:text-amber-300 text-xs font-bold">
-                          Gói Khán Giả • {currentEditingPkg.questions.length} câu hỏi
-                        </span>
-                      ) : currentEditingPkg.questions.length === 4 ? (
+                      <span>{currentEditingMainPkg.title}</span>
+                      {currentEditingMainPkg.questions.length === 4 ? (
                         <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 border border-emerald-300 dark:border-emerald-500/40 text-emerald-800 dark:text-emerald-300 text-xs font-bold">
                           Đủ 04 câu hỏi
                         </span>
                       ) : (
                         <span className="px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950 border border-amber-300 dark:border-amber-500/40 text-amber-800 dark:text-amber-300 text-xs font-bold flex items-center gap-1">
                           <AlertTriangle className="w-3.5 h-3.5" />
-                          <span>Cảnh báo: Hiện có {currentEditingPkg.questions.length}/4 câu hỏi</span>
+                          <span>Hiện có {currentEditingMainPkg.questions.length}/4 câu hỏi</span>
                         </span>
                       )}
                     </h3>
@@ -616,10 +537,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                   <div className="flex items-center gap-2">
                     <button
+                      onClick={onManualSync}
+                      className="px-3.5 py-2 rounded-xl bg-cyan-100 dark:bg-cyan-950 border border-cyan-300 dark:border-cyan-500/50 text-cyan-900 dark:text-cyan-200 text-xs font-bold hover:bg-cyan-200 dark:hover:bg-cyan-900 transition flex items-center gap-1.5 shadow-xs"
+                      title="Đồng bộ tất cả câu hỏi lên Cloud Firebase"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      <span>Đồng bộ Cloud</span>
+                    </button>
+                    <button
                       onClick={() => {
+                        setEditingPkgId(currentEditingMainPkg.id);
                         setEditingQuestion({
                           id: '',
-                          order: currentEditingPkg.questions.length + 1,
+                          order: currentEditingMainPkg.questions.length + 1,
                           question: '',
                           optionA: '',
                           optionB: '',
@@ -634,19 +564,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <Plus className="w-4 h-4" />
                       <span>Thêm câu hỏi vào gói</span>
                     </button>
-                    <button
-                      onClick={() => handleDeletePackage(currentEditingPkg.id)}
-                      className="p-2 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 hover:border-rose-300 dark:hover:border-rose-500/50"
-                      title="Xóa gói này"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    {teamPackages.length > 10 && (
+                      <button
+                        onClick={() => handleDeletePackage(currentEditingMainPkg.id)}
+                        className="p-2 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 hover:border-rose-300 dark:border-rose-500/50"
+                        title="Xóa gói này"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                 </div>
 
                 {/* Question List */}
                 <div className="space-y-4">
-                  {currentEditingPkg.questions.map((q, idx) => (
+                  {currentEditingMainPkg.questions.map((q, idx) => (
                     <div
                       key={q.id}
                       className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 space-y-3"
@@ -671,7 +603,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         <div className="flex items-center gap-2 flex-shrink-0">
                           <button
                             onClick={() => {
-                              setEditingQuestion(q);
+                              setEditingPkgId(currentEditingMainPkg.id);
+                              setEditingQuestion({ ...q });
                               setIsAddingNewQuestion(false);
                             }}
                             className="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-cyan-600 dark:hover:text-cyan-300"
@@ -680,7 +613,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             <Edit2 className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => handleDeleteQuestion(q.id)}
+                            onClick={() => handleDeleteQuestion(q.id, currentEditingMainPkg.id)}
                             className="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400"
                             title="Xóa câu hỏi"
                           >
@@ -717,7 +650,200 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     </div>
                   ))}
 
-                  {currentEditingPkg.questions.length === 0 && (
+                  {currentEditingMainPkg.questions.length === 0 && (
+                    <div className="text-center py-10 text-slate-400 text-sm">
+                      Gói này chưa có câu hỏi nào. Nhấn "Thêm câu hỏi vào gói" để tạo mới.
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ============================================================ */}
+        {/* TAB 2: AUDIENCE PACKAGES (3 PACKAGES FOR AUDIENCE) */}
+        {/* ============================================================ */}
+        {activeTab === 'audience_packages' && (
+          <div className="py-6 space-y-6">
+            {/* Header Description */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-500/30">
+              <div>
+                <h3 className="text-base font-black text-amber-900 dark:text-amber-200 uppercase tracking-wide">
+                  Quản Lý Gói Câu Hỏi Cho Khán Giả (3 Gói Khán Giả)
+                </h3>
+                <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
+                  Tách thành 3 gói nhỏ: <strong>Khán giả 1, Khán giả 2, Khán giả 3</strong> (mỗi gói đúng 5 câu hỏi) • Tổ chức giao lưu cổ động viên nhiều khung giờ
+                </p>
+              </div>
+              <div className="text-xs font-bold text-amber-800 dark:text-amber-300 bg-white dark:bg-slate-900 px-3 py-1.5 rounded-xl border border-amber-300 dark:border-amber-500/40 shadow-xs">
+                Tổng: {audiencePackages.length} Gói • 5 câu/gói
+              </div>
+            </div>
+
+            {/* Package selector bar: 3 audience packages */}
+            <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div className="flex items-center gap-2 overflow-x-auto max-w-4xl py-1">
+                {audiencePackages.map((pkg) => {
+                  const hasValidCount = pkg.questions.length === 5;
+                  return (
+                    <button
+                      key={pkg.id}
+                      onClick={() => setSelectedAudiencePkgId(pkg.id)}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold border transition flex items-center gap-2 flex-shrink-0 ${
+                        currentEditingAudiencePkg?.id === pkg.id
+                          ? 'bg-amber-500 text-slate-950 border-amber-400 shadow font-black'
+                          : 'bg-slate-100 dark:bg-slate-950 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-slate-400 dark:hover:border-slate-500'
+                      }`}
+                    >
+                      <Gift className="w-3.5 h-3.5" />
+                      <span>{pkg.title}</span>
+                      {!hasValidCount ? (
+                        <span className="w-2 h-2 rounded-full bg-amber-500" title={`Hiện có ${pkg.questions.length}/5 câu hỏi`} />
+                      ) : (
+                        <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                Tách từ 15 câu hỏi khán giả ban đầu
+              </div>
+            </div>
+
+            {/* Current audience package details & questions list */}
+            {currentEditingAudiencePkg && (
+              <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="text"
+                      value={currentEditingAudiencePkg.title}
+                      onChange={(e) => {
+                        const updated = packages.map((p) =>
+                          p.id === currentEditingAudiencePkg.id ? { ...p, title: e.target.value } : p
+                        );
+                        onUpdatePackages(updated);
+                        StorageService.savePackages(updated, true);
+                      }}
+                      className="text-xl font-black bg-transparent border-b border-dashed border-amber-300 dark:border-amber-700 focus:outline-none focus:border-amber-500 text-slate-900 dark:text-white pb-1"
+                      title="Nhấp để đổi tên gói câu hỏi khán giả"
+                    />
+                    <span className="px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950 border border-amber-300 dark:border-amber-500/40 text-amber-800 dark:text-amber-300 text-xs font-bold">
+                      Gói Khán Giả • {currentEditingAudiencePkg.questions.length} câu hỏi
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={onManualSync}
+                      className="px-3.5 py-2 rounded-xl bg-amber-100 dark:bg-amber-950 border border-amber-300 dark:border-amber-500/50 text-amber-900 dark:text-amber-200 text-xs font-bold hover:bg-amber-200 dark:hover:bg-amber-900 transition flex items-center gap-1.5 shadow-xs"
+                      title="Đồng bộ tất cả câu hỏi lên Cloud Firebase"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      <span>Đồng bộ Cloud</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditingPkgId(currentEditingAudiencePkg.id);
+                        setEditingQuestion({
+                          id: '',
+                          order: currentEditingAudiencePkg.questions.length + 1,
+                          question: '',
+                          optionA: '',
+                          optionB: '',
+                          optionC: '',
+                          optionD: '',
+                          correctAnswer: 'A',
+                          explanation: '',
+                        });
+                        setIsAddingNewQuestion(true);
+                      }}
+                      className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black flex items-center gap-1.5 shadow-sm"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>Thêm câu hỏi vào gói</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Question List */}
+                <div className="space-y-4">
+                  {currentEditingAudiencePkg.questions.map((q, idx) => (
+                    <div
+                      key={q.id}
+                      className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 space-y-3"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex items-start gap-3">
+                          <div className="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-700 dark:text-amber-300 font-bold flex items-center justify-center text-xs flex-shrink-0">
+                            {idx + 1}
+                          </div>
+                          <div>
+                            <div className="font-bold text-slate-900 dark:text-white text-sm md:text-base leading-relaxed">
+                              {q.question}
+                            </div>
+                            {q.explanation && (
+                              <div className="mt-1 text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 p-2 rounded-xl border border-amber-200 dark:border-amber-500/30">
+                                <strong>Căn cứ / Giải thích:</strong> {q.explanation}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <button
+                            onClick={() => {
+                              setEditingPkgId(currentEditingAudiencePkg.id);
+                              setEditingQuestion({ ...q });
+                              setIsAddingNewQuestion(false);
+                            }}
+                            className="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-300"
+                            title="Sửa câu hỏi"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteQuestion(q.id, currentEditingAudiencePkg.id)}
+                            className="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400"
+                            title="Xóa câu hỏi"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Options breakdown */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-200 dark:border-slate-800/60">
+                        {(['A', 'B', 'C', 'D'] as const).map((key) => {
+                          const isCorrect = q.correctAnswer === key;
+                          const optText = q[`option${key}` as keyof QuizQuestion];
+                          return (
+                            <div
+                              key={key}
+                              className={`p-2 rounded-xl flex items-center gap-2 ${
+                                isCorrect
+                                  ? 'bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-300 dark:border-emerald-500/50 text-emerald-800 dark:text-emerald-200 font-semibold'
+                                  : 'bg-white dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-transparent'
+                              }`}
+                            >
+                              <span className="font-black">{key}.</span>
+                              <span className="line-clamp-1">{optText as string}</span>
+                              {isCorrect && (
+                                <span className="ml-auto text-[10px] bg-emerald-500 text-slate-950 font-black px-1.5 py-0.5 rounded">
+                                  ĐÚNG
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+
+                  {currentEditingAudiencePkg.questions.length === 0 && (
                     <div className="text-center py-10 text-slate-400 text-sm">
                       Gói này chưa có câu hỏi nào. Nhấn "Thêm câu hỏi vào gói" để tạo mới.
                     </div>
@@ -812,249 +938,58 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         )}
 
         {/* ============================================================ */}
-        {/* TAB 4: TEAMS & SCOREBOARD */}
-        {/* ============================================================ */}
-        {activeTab === 'teams' && (
-          <div className="py-6 space-y-6">
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
-              <div>
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 flex items-center justify-center font-black">
-                    <Users className="w-4 h-4" />
-                  </div>
-                  <h3 className="text-lg font-black text-slate-900 dark:text-white">Quản Lý Đội Thi & Bảng Điểm Hội Thi</h3>
-                </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  Quản lý thông tin đội thi (Thêm/Sửa/Xóa), nhập điểm trực tiếp Phần 1 (max 20đ) và Phần 2 (max 30đ)
-                </p>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2">
-                <button
-                  onClick={() => {
-                    setEditingTeam({
-                      id: '',
-                      code: `T${teams.length + 1}`,
-                      name: '',
-                      unit: 'Xã Tam Hải',
-                      members: '',
-                      round1Score: 0,
-                      round2Score: 0,
-                      totalScore: 0,
-                    });
-                    setIsAddingNewTeam(true);
-                  }}
-                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 text-xs font-black flex items-center gap-1.5 shadow-lg shadow-cyan-950/20 dark:shadow-cyan-950/40 transition active:scale-95"
-                >
-                  <UserPlus className="w-4 h-4" />
-                  <span>Thêm đội thi mới</span>
-                </button>
-                <button
-                  onClick={handleResetTeamScores}
-                  className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-300 hover:border-rose-300 dark:hover:border-rose-500/50 text-xs font-bold flex items-center gap-1.5 transition"
-                  title="Đặt lại toàn bộ điểm số của các đội về 0"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                  <span>Đặt lại điểm số</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Quick Stats & Search */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="sm:col-span-2 relative">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder="Tìm kiếm đội thi theo tên thôn, tên đội hoặc mã đội..."
-                  value={teamSearchQuery}
-                  onChange={(e) => setTeamSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs placeholder:text-slate-400 focus:outline-none focus:border-cyan-500 shadow-sm"
-                />
-              </div>
-
-              <div className="p-2.5 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 flex items-center justify-between px-4 text-xs shadow-sm">
-                <span className="text-slate-500 dark:text-slate-400 font-medium">Tổng số đội:</span>
-                <span className="font-black text-cyan-600 dark:text-cyan-300 text-sm">{teams.length} Đội</span>
-              </div>
-            </div>
-
-            {/* Teams Table */}
-            <div className="overflow-x-auto rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 shadow-xl">
-              <table className="w-full text-left text-sm text-slate-800 dark:text-slate-200">
-                <thead className="bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400 text-xs uppercase font-bold border-b border-slate-200 dark:border-slate-800">
-                  <tr>
-                    <th className="p-4 text-center w-16">Hạng</th>
-                    <th className="p-4 w-20">Mã</th>
-                    <th className="p-4">Tên Đội Thi & Thành Viên</th>
-                    <th className="p-4">Đơn Vị</th>
-                    <th className="p-4 text-center">Điểm Phần 1 (Max 20)</th>
-                    <th className="p-4 text-center">Điểm Phần 2 (Max 30)</th>
-                    <th className="p-4 text-center font-black">Tổng Điểm</th>
-                    <th className="p-4 text-center w-28">Thao Tác</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
-                  {teams
-                    .filter((t) => {
-                      if (!teamSearchQuery.trim()) return true;
-                      const q = teamSearchQuery.toLowerCase();
-                      return (
-                        t.name.toLowerCase().includes(q) ||
-                        t.unit.toLowerCase().includes(q) ||
-                        t.code.toLowerCase().includes(q) ||
-                        t.members.toLowerCase().includes(q)
-                      );
-                    })
-                    .map((t) => {
-                      // Calculate rank based on total score
-                      const sorted = [...teams].sort((a, b) => b.totalScore - a.totalScore);
-                      const rank = sorted.findIndex((item) => item.id === t.id) + 1;
-
-                      return (
-                        <tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-slate-850/50 transition">
-                          <td className="p-4 text-center">
-                            {rank === 1 ? (
-                              <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-500/20 text-amber-500 dark:text-amber-300 font-black text-xs border border-amber-500/40">
-                                🥇 1
-                              </span>
-                            ) : rank === 2 ? (
-                              <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-slate-400/20 text-slate-700 dark:text-slate-200 font-black text-xs border border-slate-400/40">
-                                🥈 2
-                              </span>
-                            ) : rank === 3 ? (
-                              <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-700/20 text-amber-600 dark:text-amber-400 font-black text-xs border border-amber-700/40">
-                                🥉 3
-                              </span>
-                            ) : (
-                              <span className="text-slate-400 dark:text-slate-500 font-bold text-xs">{rank}</span>
-                            )}
-                          </td>
-                          <td className="p-4">
-                            <span className="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 font-mono text-xs font-bold text-cyan-700 dark:text-cyan-300">
-                              {t.code}
-                            </span>
-                          </td>
-                          <td className="p-4">
-                            <div className="font-bold text-slate-900 dark:text-white text-sm md:text-base">{t.name}</div>
-                            {t.members && (
-                              <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1">
-                                {t.members}
-                              </div>
-                            )}
-                          </td>
-                          <td className="p-4 text-slate-600 dark:text-slate-300 text-xs">{t.unit}</td>
-                          <td className="p-4 text-center">
-                            <div className="inline-flex items-center gap-1.5">
-                              <input
-                                type="number"
-                                min="0"
-                                max="20"
-                                value={t.round1Score}
-                                onChange={(e) => {
-                                  const val = Math.max(0, Math.min(20, parseFloat(e.target.value) || 0));
-                                  const updated = teams.map((team) =>
-                                    team.id === t.id
-                                      ? { ...team, round1Score: val, totalScore: val + team.round2Score }
-                                      : team
-                                  );
-                                  onUpdateTeams(updated);
-                                  StorageService.saveTeams(updated, true);
-                                }}
-                                className="w-16 px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 focus:border-cyan-400 rounded-lg text-center font-black text-cyan-700 dark:text-cyan-300 text-sm focus:outline-none"
-                              />
-                              <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">/ 20</span>
-                            </div>
-                          </td>
-                          <td className="p-4 text-center">
-                            <div className="inline-flex items-center gap-1.5">
-                              <input
-                                type="number"
-                                min="0"
-                                max="30"
-                                step="0.5"
-                                value={t.round2Score}
-                                onChange={(e) => {
-                                  const val = Math.max(0, Math.min(30, parseFloat(e.target.value) || 0));
-                                  const updated = teams.map((team) =>
-                                    team.id === t.id
-                                      ? { ...team, round2Score: val, totalScore: team.round1Score + val }
-                                      : team
-                                  );
-                                  onUpdateTeams(updated);
-                                  StorageService.saveTeams(updated, true);
-                                }}
-                                className="w-16 px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 focus:border-indigo-400 rounded-lg text-center font-black text-indigo-700 dark:text-indigo-300 text-sm focus:outline-none"
-                              />
-                              <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">/ 30</span>
-                            </div>
-                          </td>
-                          <td className="p-4 text-center">
-                            <span className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-cyan-600 dark:from-emerald-400 dark:to-cyan-400">
-                              {t.round1Score + t.round2Score}
-                            </span>
-                          </td>
-                          <td className="p-4 text-center">
-                            <div className="flex items-center justify-center gap-1.5">
-                              <button
-                                onClick={() => {
-                                  setEditingTeam(t);
-                                  setIsAddingNewTeam(false);
-                                }}
-                                className="p-2 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:text-cyan-600 dark:hover:text-cyan-300 hover:border-cyan-400 dark:hover:border-cyan-500/50 transition"
-                                title="Chỉnh sửa thông tin đội thi"
-                              >
-                                <Edit2 className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => setTeamToDelete(t)}
-                                className="p-2 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:border-rose-400 dark:hover:border-rose-500/50 transition"
-                                title="Xóa đội thi này"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                </tbody>
-              </table>
-
-              {teams.length === 0 && (
-                <div className="text-center py-12 text-slate-400 text-sm space-y-3">
-                  <Users className="w-8 h-8 text-slate-600 mx-auto" />
-                  <div>Chưa có đội thi nào trong danh sách.</div>
-                  <button
-                    onClick={() => {
-                      setEditingTeam({
-                        id: '',
-                        code: 'T1',
-                        name: '',
-                        unit: 'Xã Tam Hải',
-                        members: '',
-                        round1Score: 0,
-                        round2Score: 0,
-                        totalScore: 0,
-                      });
-                      setIsAddingNewTeam(true);
-                    }}
-                    className="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold inline-flex items-center gap-1.5"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>Thêm đội thi đầu tiên</span>
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* ============================================================ */}
-        {/* TAB 5: SETTINGS, SOUND & CLOUD FIREBASE */}
+        {/* TAB 4: SETTINGS, SOUND & CLOUD FIREBASE */}
         {/* ============================================================ */}
         {activeTab === 'settings' && (
           <div className="py-6 space-y-6">
+            {/* Quick Reset Station */}
+            <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+              <div className="flex items-center gap-3">
+                <RotateCcw className="w-6 h-6 text-rose-500 dark:text-rose-400" />
+                <div>
+                  <h3 className="text-lg font-black text-slate-900 dark:text-white">Reset Trạng Thái Hội Thi</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Sử dụng khi chuẩn bị bắt đầu một lượt thi mới hoặc phiên tổng duyệt (có xác nhận chống click nhầm)
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                <button
+                  id="admin-reset-r1-btn"
+                  onClick={onResetRound1}
+                  className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 hover:border-cyan-500/60 text-left transition shadow-xs"
+                >
+                  <div className="text-sm font-bold text-cyan-700 dark:text-cyan-300">Reset Phần thi 1</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    Đưa toàn bộ các gói câu hỏi về trạng thái CHƯA THI
+                  </div>
+                </button>
+
+                <button
+                  id="admin-reset-r2-btn"
+                  onClick={onResetRound2}
+                  className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 hover:border-indigo-500/60 text-left transition shadow-xs"
+                >
+                  <div className="text-sm font-bold text-indigo-700 dark:text-indigo-300">Reset Phần thi 2</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    Đưa toàn bộ 14 tình huống về trạng thái CHƯA THI
+                  </div>
+                </button>
+
+                <button
+                  id="admin-reset-all-btn"
+                  onClick={onResetAll}
+                  className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-600/50 hover:border-rose-400 text-left transition shadow-xs"
+                >
+                  <div className="text-sm font-bold text-rose-700 dark:text-rose-300">Reset Toàn Bộ Hội Thi</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    Đưa toàn bộ hội thi về ban đầu (Popup xác nhận an toàn)
+                  </div>
+                </button>
+              </div>
+            </div>
+
             {/* Sound Synthesizer Testing */}
             <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
               <div className="flex items-center gap-3">
@@ -1405,6 +1340,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </div>
 
                 <div>
+                  <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">
+                    Căn cứ pháp lý / Giải thích đáp án (dành cho MC & Khán giả):
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={editingQuestion.explanation || ''}
+                    onChange={(e) => setEditingQuestion({ ...editingQuestion, explanation: e.target.value })}
+                    placeholder="Ví dụ: Theo Nghị quyết số... / Căn cứ Điều... Luật..."
+                    className="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
+
+                <div>
                   <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">Link ảnh minh họa (nếu có):</label>
                   <input
                     type="text"
@@ -1425,9 +1373,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </button>
                 <button
                   onClick={() => handleSaveQuestion(editingQuestion)}
-                  className="px-5 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-black shadow-sm transition"
+                  className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black shadow-md transition flex items-center gap-1.5"
                 >
-                  Lưu Câu Hỏi
+                  <Save className="w-4 h-4" />
+                  <span>Lưu Thay Đổi Câu Hỏi</span>
                 </button>
               </div>
             </div>
@@ -1494,181 +1443,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black shadow-sm transition"
                 >
                   Lưu Tình Huống
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Modal: Edit or Add Team */}
-        {editingTeam && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 dark:bg-black/85 backdrop-blur-sm animate-in fade-in duration-150">
-            <div className="w-full max-w-lg bg-white dark:bg-slate-900 border border-cyan-300 dark:border-cyan-500/50 rounded-3xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
-                <div className="flex items-center gap-2">
-                  <Users className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
-                  <h3 className="text-base font-black text-slate-900 dark:text-white">
-                    {isAddingNewTeam ? 'THÊM ĐỘI THI MỚI' : `CHỈNH SỬA THÔNG TIN ĐỘI THI`}
-                  </h3>
-                </div>
-                <button
-                  onClick={() => {
-                    setEditingTeam(null);
-                    setIsAddingNewTeam(false);
-                  }}
-                  className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <div className="space-y-4 text-xs">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="sm:col-span-1">
-                    <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">Mã đội thi:</label>
-                    <input
-                      type="text"
-                      value={editingTeam.code}
-                      onChange={(e) => setEditingTeam({ ...editingTeam, code: e.target.value.toUpperCase() })}
-                      className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white font-mono uppercase text-sm focus:outline-none focus:border-cyan-500"
-                      placeholder="VD: T1, T2"
-                    />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">Tên Đội thi / Ban CTMT:</label>
-                    <input
-                      type="text"
-                      required
-                      value={editingTeam.name}
-                      onChange={(e) => setEditingTeam({ ...editingTeam, name: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white font-bold text-sm focus:outline-none focus:border-cyan-500"
-                      placeholder="VD: Ban CTMT Thôn Tân Lập"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">Đơn vị / Thôn xã:</label>
-                  <input
-                    type="text"
-                    value={editingTeam.unit}
-                    onChange={(e) => setEditingTeam({ ...editingTeam, unit: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-cyan-500"
-                    placeholder="VD: Thôn Tân Lập, xã Tam Hải"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">Thành viên tham gia / Đại diện:</label>
-                  <input
-                    type="text"
-                    value={editingTeam.members}
-                    onChange={(e) => setEditingTeam({ ...editingTeam, members: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-cyan-500"
-                    placeholder="VD: 03 thành viên đại diện hoặc danh sách họ tên..."
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-200 dark:border-slate-800">
-                  <div>
-                    <label className="block text-cyan-700 dark:text-cyan-300 font-bold mb-1">Điểm Phần 1 (Max 20):</label>
-                    <input
-                      type="number"
-                      min="0"
-                      max="20"
-                      step="1"
-                      value={editingTeam.round1Score}
-                      onChange={(e) => {
-                        const val = Math.max(0, Math.min(20, parseFloat(e.target.value) || 0));
-                        setEditingTeam({
-                          ...editingTeam,
-                          round1Score: val,
-                          totalScore: val + editingTeam.round2Score,
-                        });
-                      }}
-                      className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-cyan-700 dark:text-cyan-400 font-black text-center text-base focus:outline-none focus:border-cyan-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-indigo-700 dark:text-indigo-300 font-bold mb-1">Điểm Phần 2 (Max 30):</label>
-                    <input
-                      type="number"
-                      min="0"
-                      max="30"
-                      step="0.5"
-                      value={editingTeam.round2Score}
-                      onChange={(e) => {
-                        const val = Math.max(0, Math.min(30, parseFloat(e.target.value) || 0));
-                        setEditingTeam({
-                          ...editingTeam,
-                          round2Score: val,
-                          totalScore: editingTeam.round1Score + val,
-                        });
-                      }}
-                      className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-indigo-700 dark:text-indigo-400 font-black text-center text-base focus:outline-none focus:border-indigo-500"
-                    />
-                  </div>
-                </div>
-
-                <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
-                  <span className="text-slate-500 dark:text-slate-400 font-bold uppercase">Tổng điểm dự tính:</span>
-                  <span className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-cyan-600 dark:from-emerald-400 dark:to-cyan-400">
-                    {(Number(editingTeam.round1Score) || 0) + (Number(editingTeam.round2Score) || 0)} điểm
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingTeam(null);
-                    setIsAddingNewTeam(false);
-                  }}
-                  className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-bold transition"
-                >
-                  Hủy
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleSaveTeam(editingTeam)}
-                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 text-xs font-black shadow-lg shadow-cyan-950/20 dark:shadow-cyan-950/40 transition"
-                >
-                  {isAddingNewTeam ? 'Thêm Đội Thi' : 'Lưu Thay Đổi'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Modal: Delete Team Confirm */}
-        {teamToDelete && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 dark:bg-black/85 backdrop-blur-sm animate-in fade-in duration-150">
-            <div className="w-full max-w-md bg-white dark:bg-slate-900 border border-rose-300 dark:border-rose-500/50 rounded-3xl p-6 shadow-2xl space-y-4">
-              <div className="flex items-center gap-3 text-rose-600 dark:text-rose-400">
-                <div className="w-10 h-10 rounded-2xl bg-rose-100 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center flex-shrink-0">
-                  <AlertTriangle className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-black text-slate-900 dark:text-white">XÁC NHẬN XÓA ĐỘI THI</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Hành động này không thể hoàn tác</p>
-                </div>
-              </div>
-              <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-950 p-3 rounded-2xl border border-slate-200 dark:border-slate-800">
-                Bạn có chắc chắn muốn xóa đội thi <strong className="text-slate-900 dark:text-white font-bold">"{teamToDelete.name}"</strong> (Mã: {teamToDelete.code})? Dữ liệu điểm số và xếp hạng của đội này sẽ được cập nhật ngay lập tức.
-              </p>
-              <div className="flex justify-end gap-3 pt-2">
-                <button
-                  onClick={() => setTeamToDelete(null)}
-                  className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-bold transition"
-                >
-                  Hủy bỏ
-                </button>
-                <button
-                  onClick={() => handleDeleteTeam(teamToDelete.id)}
-                  className="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-black shadow-lg shadow-rose-950/20 dark:shadow-rose-950/40 transition"
-                >
-                  Xóa Đội Thi
                 </button>
               </div>
             </div>

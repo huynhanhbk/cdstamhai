@@ -32,7 +32,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   onOpenRules2,
   onOpenAdmin,
 }) => {
-  const round1PlayedCount = packages.filter((p) => p.status === 'completed').length;
+  const round1PlayedCount = packages.filter((p) => p.status === 'completed' && !p.isAudience && p.number <= 10).length;
   const round2PlayedCount = situations.filter((s) => s.status === 'completed').length;
 
   return (

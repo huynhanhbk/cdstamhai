@@ -266,10 +266,10 @@ export const Round1StageScreen: React.FC<Round1StageScreenProps> = ({
         <div className="relative z-10 w-full flex justify-between items-center max-w-5xl">
           <button
             onClick={onBackToPackageList}
-            className="px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white flex items-center gap-2 text-sm font-semibold transition shadow-sm"
+            className="px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:border-cyan-500 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 text-sm font-bold transition shadow-sm"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Quay lại danh sách gói</span>
+            <span>Quay lại danh sách gói câu hỏi</span>
           </button>
           <div className="text-cyan-700 dark:text-cyan-400 text-sm font-bold tracking-widest uppercase">
             PHẦN THI: HIỂU BIẾT SỐ
@@ -279,13 +279,13 @@ export const Round1StageScreen: React.FC<Round1StageScreenProps> = ({
         {/* Grand Title */}
         <div className="relative z-10 my-auto py-8">
           <div className="inline-block px-5 py-1.5 rounded-full bg-cyan-100 dark:bg-cyan-950/80 border border-cyan-400 dark:border-cyan-500/50 text-cyan-800 dark:text-cyan-300 font-black tracking-widest text-sm uppercase mb-4 shadow-sm dark:shadow-lg dark:shadow-cyan-950/40">
-            {pkg.isAudience || pkg.number === 11 ? 'GIAO LƯU KHÁN GIẢ & CỔ ĐỘNG VIÊN' : 'MÀN HÌNH SÂN KHẤU'}
+            {pkg.isAudience || pkg.number >= 11 ? 'GIAO LƯU KHÁN GIẢ & CỔ ĐỘNG VIÊN' : 'MÀN HÌNH SÂN KHẤU'}
           </div>
           <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black text-slate-900 dark:text-white uppercase tracking-tight drop-shadow-sm dark:drop-shadow-2xl">
             {pkg.title}
           </h1>
           <p className="mt-4 text-slate-700 dark:text-slate-300 text-lg md:text-2xl font-medium">
-            {pkg.isAudience || pkg.number === 11
+            {pkg.isAudience || pkg.number >= 11
               ? `Gồm ${totalQuestions} câu hỏi trắc nghiệm • 10 giây suy nghĩ/câu • Khán giả trả lời đúng nhận quà từ BTC!`
               : 'Gồm 04 câu hỏi trắc nghiệm • 10 giây/câu • Thí sinh giơ bảng trả lời trực tiếp'}
           </p>
@@ -320,7 +320,7 @@ export const Round1StageScreen: React.FC<Round1StageScreenProps> = ({
       <div className="relative min-h-[calc(100vh-68px)] flex flex-col justify-between items-center p-6 md:p-12 text-center bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200">
         <div className="relative z-10 w-full max-w-4xl">
           <div className="inline-block px-4 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-950 border border-emerald-400 dark:border-emerald-500/40 text-emerald-800 dark:text-emerald-300 text-xs font-black uppercase tracking-wider mb-4">
-            {pkg.isAudience || pkg.number === 11 ? 'GIAO LƯU KHÁN GIẢ HOÀN THÀNH' : 'KẾT THÚC PHẦN THI'}
+            {pkg.isAudience || pkg.number >= 11 ? 'GIAO LƯU KHÁN GIẢ HOÀN THÀNH' : 'KẾT THÚC PHẦN THI'}
           </div>
 
           <h1 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white uppercase tracking-tight">
@@ -328,7 +328,7 @@ export const Round1StageScreen: React.FC<Round1StageScreenProps> = ({
           </h1>
 
           <div className="my-8 p-8 rounded-3xl bg-white dark:bg-slate-900/90 border-2 border-cyan-400/60 dark:border-cyan-500/40 shadow-xl dark:shadow-2xl max-w-xl mx-auto">
-            {pkg.isAudience || pkg.number === 11 ? (
+            {pkg.isAudience || pkg.number >= 11 ? (
               <>
                 <div className="text-sm font-bold text-amber-600 dark:text-amber-400 uppercase tracking-widest mb-2">
                   KẾT QUẢ GIAO LƯU KHÁN GIẢ
@@ -392,7 +392,7 @@ export const Round1StageScreen: React.FC<Round1StageScreenProps> = ({
               onClick={onBackToPackageList}
               className="px-8 py-4 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xl font-black tracking-wide shadow-xl shadow-cyan-950/20 dark:shadow-cyan-950/50 transition-transform active:scale-95 flex items-center gap-3"
             >
-              <span>QUAY VỀ DANH SÁCH GÓI</span>
+              <span>QUAY LẠI DANH SÁCH GÓI CÂU HỎI</span>
               <ArrowRight className="w-6 h-6 text-slate-950 font-bold" />
             </button>
           </div>
@@ -416,6 +416,15 @@ export const Round1StageScreen: React.FC<Round1StageScreenProps> = ({
       {/* Top Header Information for Stage */}
       <div className="relative z-10 w-full flex items-center justify-between gap-4 pb-3 border-b border-slate-200 dark:border-slate-800">
         <div className="flex items-center gap-3">
+          <button
+            onClick={onBackToPackageList}
+            className="px-3.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:border-cyan-500 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs md:text-sm font-bold flex items-center gap-1.5 shadow-sm transition"
+            title="Quay lại danh sách gói câu hỏi"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span className="hidden sm:inline">Quay lại danh sách gói câu hỏi</span>
+            <span className="sm:hidden">Quay lại</span>
+          </button>
           <div className="px-3.5 py-1 rounded-xl bg-cyan-100 dark:bg-cyan-500/20 border border-cyan-300 dark:border-cyan-500/40 text-cyan-800 dark:text-cyan-300 text-sm font-black uppercase">
             {pkg.title}
           </div>

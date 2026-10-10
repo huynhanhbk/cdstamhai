@@ -4,6 +4,7 @@ import {
   getDocs,
   getDoc,
   setDoc,
+  deleteDoc,
   writeBatch,
   onSnapshot,
 } from 'firebase/firestore';
@@ -66,43 +67,136 @@ export class StorageService {
   }
 
   // ===== PACKAGES =====
+  // Helper to ensure strictly 10 main team packages and strictly 3 audience packages
+  public static sanitizePackages(rawPkgs: QuizPackage[]): QuizPackage[] {
+    if (!rawPkgs || !Array.isArray(rawPkgs) || rawPkgs.length === 0) {
+      return DEFAULT_PACKAGES;
+    }
+
+    // 1. Filter out completely unwanted / invalid packages:
+    // - "CÂU HỎI DÀNH CHO KHÁN GIẢ" (15 câu)
+    // - "GÓI SỐ 12" (0 câu)
+    // - id 'pkg-audience'
+    const filtered = rawPkgs.filter((p) => {
+      if (!p) return false;
+      const titleUpper = (p.title || '').trim().toUpperCase();
+      // Remove any package with legacy title "CÂU HỎI DÀNH CHO KHÁN GIẢ"
+      if (titleUpper.includes('CÂU HỎI DÀNH CHO KHÁN GIẢ')) return false;
+      // Remove "GÓI SỐ 12" (or number 12 main package with 0 questions)
+      if (titleUpper === 'GÓI SỐ 12' || (p.number === 12 && !p.isAudience && titleUpper.includes('GÓI SỐ'))) return false;
+      // Remove legacy audience id
+      if (p.id === 'pkg-audience') return false;
+      return true;
+    });
+
+    // 2. Main Team Packages (strictly 10 packages: GÓI SỐ 1 to GÓI SỐ 10)
+    const rawTeamPkgs = filtered.filter(
+      (p) =>
+        p.number <= 10 &&
+        !p.isAudience &&
+        !(p.title || '').toLowerCase().includes('khán giả')
+    );
+
+    const defaultTeamPkgs = DEFAULT_PACKAGES.filter((p) => p.number <= 10 && !p.isAudience);
+    const cleanTeamPkgs: QuizPackage[] = [];
+    const teamMap = new Map<number, QuizPackage>();
+    rawTeamPkgs.forEach((p) => {
+      if (p.number >= 1 && p.number <= 10 && !teamMap.has(p.number)) {
+        teamMap.set(p.number, p);
+      }
+    });
+
+    for (let i = 1; i <= 10; i++) {
+      const existing = teamMap.get(i);
+      if (existing) {
+        cleanTeamPkgs.push({
+          ...existing,
+          number: i,
+          title: existing.title || `GÓI SỐ ${i}`,
+          isAudience: false,
+        });
+      } else {
+        const fallback = defaultTeamPkgs.find((d) => d.number === i) || defaultTeamPkgs[i - 1];
+        if (fallback) {
+          cleanTeamPkgs.push(fallback);
+        }
+      }
+    }
+    cleanTeamPkgs.sort((a, b) => a.number - b.number);
+
+    // 3. Audience Packages: STRICTLY ONLY 3 PACKAGES (Khán giả 1, Khán giả 2, Khán giả 3)
+    const defaultAudiencePkgs = DEFAULT_PACKAGES.filter((p) => p.isAudience || p.number >= 11);
+
+    // Audience 1 (pkg-11)
+    const existingKg1 = filtered.find(
+      (p) =>
+        (p.id === 'pkg-11' || (p.title || '').toLowerCase().includes('khán giả 1')) &&
+        !(p.title || '').toUpperCase().includes('CÂU HỎI DÀNH CHO KHÁN GIẢ')
+    );
+    const defKg1 = defaultAudiencePkgs.find((p) => p.id === 'pkg-11') || defaultAudiencePkgs[0];
+    const kg1: QuizPackage = {
+      id: 'pkg-11',
+      number: 11,
+      title: existingKg1?.title || 'Khán giả 1',
+      status: existingKg1?.status || 'unplayed',
+      isAudience: true,
+      questions: existingKg1?.questions && existingKg1.questions.length > 0 ? existingKg1.questions : defKg1.questions,
+    };
+
+    // Audience 2 (pkg-12)
+    const existingKg2 = filtered.find(
+      (p) =>
+        (p.id === 'pkg-12' || (p.title || '').toLowerCase().includes('khán giả 2')) &&
+        (p.title || '').trim().toUpperCase() !== 'GÓI SỐ 12' &&
+        !(p.title || '').toUpperCase().includes('CÂU HỎI DÀNH CHO KHÁN GIẢ')
+    );
+    const defKg2 = defaultAudiencePkgs.find((p) => p.id === 'pkg-12') || defaultAudiencePkgs[1];
+    const kg2: QuizPackage = {
+      id: 'pkg-12',
+      number: 12,
+      title: existingKg2?.title && existingKg2.title.trim().toUpperCase() !== 'GÓI SỐ 12' ? existingKg2.title : 'Khán giả 2',
+      status: existingKg2?.status || 'unplayed',
+      isAudience: true,
+      questions: existingKg2?.questions && existingKg2.questions.length > 0 ? existingKg2.questions : defKg2.questions,
+    };
+
+    // Audience 3 (pkg-13)
+    const existingKg3 = filtered.find(
+      (p) =>
+        (p.id === 'pkg-13' || (p.title || '').toLowerCase().includes('khán giả 3')) &&
+        !(p.title || '').toUpperCase().includes('CÂU HỎI DÀNH CHO KHÁN GIẢ')
+    );
+    const defKg3 = defaultAudiencePkgs.find((p) => p.id === 'pkg-13') || defaultAudiencePkgs[2];
+    const kg3: QuizPackage = {
+      id: 'pkg-13',
+      number: 13,
+      title: existingKg3?.title || 'Khán giả 3',
+      status: existingKg3?.status || 'unplayed',
+      isAudience: true,
+      questions: existingKg3?.questions && existingKg3.questions.length > 0 ? existingKg3.questions : defKg3.questions,
+    };
+
+    const cleanAudiencePkgs = [kg1, kg2, kg3];
+    const finalPkgs = [...cleanTeamPkgs, ...cleanAudiencePkgs];
+    finalPkgs.sort((a, b) => a.number - b.number);
+    return finalPkgs;
+  }
+
   public static getPackages(): QuizPackage[] {
     try {
       const data = localStorage.getItem(LOCAL_STORAGE_KEY_PACKAGES);
       if (data) {
-        let pkgs: QuizPackage[] = JSON.parse(data);
-        // 1. Always remove package 12 as requested
-        pkgs = pkgs.filter((p) => p.number !== 12 && p.id !== 'pkg-12');
-
-        // 2. Ensure package 11 is 'CÂU HỎI DÀNH CHO KHÁN GIẢ' with 14 questions
-        const defaultAudiencePkg = DEFAULT_PACKAGES.find((p) => p.number === 11 || p.id === 'pkg-11');
-        const existingAudienceIdx = pkgs.findIndex((p) => p.number === 11 || p.id === 'pkg-11' || p.isAudience);
-
-        if (defaultAudiencePkg) {
-          if (existingAudienceIdx === -1) {
-            pkgs.push(defaultAudiencePkg);
-          } else if (
-            pkgs[existingAudienceIdx].questions.length < 14 ||
-            pkgs[existingAudienceIdx].title !== 'CÂU HỎI DÀNH CHO KHÁN GIẢ'
-          ) {
-            pkgs[existingAudienceIdx] = {
-              ...pkgs[existingAudienceIdx],
-              title: 'CÂU HỎI DÀNH CHO KHÁN GIẢ',
-              isAudience: true,
-              questions: defaultAudiencePkg.questions,
-            };
-          }
-        }
-
-        pkgs.sort((a, b) => a.number - b.number);
-        this.savePackagesLocal(pkgs);
-        return pkgs;
+        const pkgs: QuizPackage[] = JSON.parse(data);
+        const sanitized = this.sanitizePackages(pkgs);
+        this.savePackagesLocal(sanitized);
+        return sanitized;
       }
     } catch {
       // Fallback to defaults
     }
-    this.savePackagesLocal(DEFAULT_PACKAGES);
-    return DEFAULT_PACKAGES;
+    const defaultSanitized = this.sanitizePackages(DEFAULT_PACKAGES);
+    this.savePackagesLocal(defaultSanitized);
+    return defaultSanitized;
   }
 
   public static savePackagesLocal(packages: QuizPackage[]) {
@@ -110,17 +204,29 @@ export class StorageService {
   }
 
   public static async savePackages(packages: QuizPackage[], syncToCloud = true): Promise<void> {
-    this.savePackagesLocal(packages);
+    const cleanPkgs = this.sanitizePackages(packages);
+    this.savePackagesLocal(cleanPkgs);
     const firestore = db;
     if (syncToCloud && isFirebaseConfigured && firestore && navigator.onLine) {
       try {
         this.updateSyncStatus({ state: 'syncing', message: 'Đang đồng bộ gói câu hỏi lên Cloud...' });
         const batch = writeBatch(firestore);
-        packages.forEach((pkg) => {
+        cleanPkgs.forEach((pkg) => {
           const ref = doc(firestore, 'quizPackages', pkg.id);
           const cleanPkg = cleanForFirestore(pkg);
           batch.set(ref, cleanPkg);
         });
+
+        // Also clean up obsolete legacy documents from Firestore
+        try {
+          const obsoleteDocIds = ['pkg-audience', 'pkg-14', 'pkg-15'];
+          obsoleteDocIds.forEach((obsId) => {
+            batch.delete(doc(firestore, 'quizPackages', obsId));
+          });
+        } catch {
+          // Ignore delete errors
+        }
+
         await batch.commit();
         this.updateSyncStatus({
           state: 'synced',
@@ -349,9 +455,9 @@ export class StorageService {
         (snapshot) => {
           if (!snapshot.empty) {
             const list = snapshot.docs.map((d) => d.data() as QuizPackage);
-            list.sort((a, b) => a.number - b.number);
-            this.savePackagesLocal(list);
-            onRemoteUpdate(list, undefined, undefined);
+            const sanitized = StorageService.sanitizePackages(list);
+            this.savePackagesLocal(sanitized);
+            onRemoteUpdate(sanitized, undefined, undefined);
           }
         },
         (err) => {
